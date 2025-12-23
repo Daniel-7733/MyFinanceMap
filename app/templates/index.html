@@ -1,10 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}My Finance Map{% endblock %}
+{% block content %}
 
-</body>
-</html>
+    <p>
+        Welcome to home page.
+        You can check. You can add.
+    </p>
+
+    <h1>
+        You have {{ amount }}
+    </h1>
+
+
+{% endblock %}
