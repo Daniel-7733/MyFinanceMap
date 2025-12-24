@@ -1,3 +1,10 @@
+"""
+                            *************************************
+
+                                        Just start the app
+
+                            *************************************
+"""
 from flask import Flask
 from app import create_app
 
