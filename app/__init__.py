@@ -6,14 +6,21 @@
                             *************************************
 """
 from flask import Flask
+from config import Config
 
 
 def create_app() -> Flask:
-    app: Flask = Flask(__name__)
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-    app.config["SECRET_KEY"] = "dev-secret-key-change-later"
+    from .models import db
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
 
     from .routes import main
     app.register_blueprint(main)
 
     return app
+
