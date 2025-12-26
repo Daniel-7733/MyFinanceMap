@@ -11,7 +11,13 @@ from datetime import date
 
 
 def generate_random_string(length_string: int = 32) -> str:
-    """This function will return random string"""
+    """
+    This function will return random string"
+    
+    :param length_string: Length of string
+    :type length_string: int
+    :return: Random string
+    """""
     return token_hex(length_string)
 
 
