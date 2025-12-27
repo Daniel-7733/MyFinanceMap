@@ -23,5 +23,8 @@ def home() -> str:
 
 @main.route("/transactions")
 def add_transaction() -> str:
+    """
+    :return: Add Transaction page
+    """
     return render_template("add_transaction.html")
 

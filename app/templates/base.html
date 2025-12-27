@@ -25,8 +25,15 @@
     <nav class="navbar">
       <div class="container-fluid">
         <ul class="navbar-nav">
+
+          <!-- Home page -->
           <li class="nav-item">
             <a href="{{ url_for('main.home') }}">Home</a>
+
+          <!-- transactions page -->
+          <li class="nav-item">
+            <a href="{{ url_for('main.add_transaction') }}">Add Transaction</a>
+
           </li>
         </ul>
       </div>
