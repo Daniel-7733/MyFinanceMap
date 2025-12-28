@@ -1,198 +1,128 @@
 {% extends "base.html" %}
-{% block title %}My Finance Map{% endblock %}
+{% block title %}Add Transaction | MyFinanceMap{% endblock %}
 {% block content %}
 
 <section>
-    <div>
-        <form method="POST">
+  <div>
+    <form method="POST">
+      <h1>Add Transaction</h1>
 
-            <h1>Edit Book</h1>
+      <!-- Amount + Currency (original transaction) -->
+      <div class="amount_cls">
+        <label for="amount">Amount</label>
+        <input
+          type="number"
+          id="amount"
+          name="amount"
+          placeholder="19.00"
+          step="0.01"
+          min="0"
+          required
+        />
 
-            <div class="amont_cls">
-                <label for="add_amount">Amount</label>
-                <input type="text" id="amount_id" name="amount_name" placeholder="19.00" required>
-                <label for="add_currency">Currency</label>  <!-- Currency should be written once -->
-                <input type="text" id="currency_id" name="currency_name" placeholder="USD" required>
-            </div>
+        <label for="currency_code">Currency</label>
+        <input
+          type="text"
+          id="currency_code"
+          name="currency_code"
+          placeholder="USD"
+          maxlength="3"
+          required
+        />
+        <small>Use currency codes like USD, EUR, TRY.</small>
+      </div>
 
-            <!-- This part can be in separate box to not confuse the user -->
-            <!-- There should be an if statement that if user choose this part; he should fill all part,
-            but he can update it again (because if they have cash, they don't know the final rate of it-->
-            <div class="home_amont_cls">
-                <p>This part you can add if you get money in different then your homeland currency </p>
-                <label for="add_home_amount">Home Amount</label>
-                <input type="text" id="home_amount_id" name="home_amount_name" placeholder="19.00">
-                <label for="add_home_currency">Home Currency</label>
-                <select class="form-select" id="currency" name="currency">
-                    <option>select currency</option>
-                    <option value="USA">USA - US Dollar</option>
-                    <option value="AFN">AFN - Afghan Afghani</option>
-                    <option value="ALL">ALL - Albanian Lek</option>
-                    <option value="DZD">DZD - Algerian Dinar</option>
-                    <option value="AOA">AOA - Angolan Kwanza</option>
-                    <option value="ARS">ARS - Argentine Peso</option>
-                    <option value="AMD">AMD - Armenian Dram</option>
-                    <option value="AWG">AWG - Aruban Florin</option>
-                    <option value="AUD">AUD - Australian Dollar</option>
-                    <option value="AZN">AZN - Azerbaijani Manat</option>
-                    <option value="BSD">BSD - Bahamian Dollar</option>
-                    <option value="BHD">BHD - Bahraini Dinar</option>
-                    <option value="BDT">BDT - Bangladeshi Taka</option>
-                    <option value="BBD">BBD - Barbadian Dollar</option>
-                    <option value="BYN">BYN - Belarusian Ruble</option>
-                    <option value="BZD">BZD - Belize Dollar</option>
-                    <option value="BMD">BMD - Bermudan Dollar</option>
-                    <option value="BTN">BTN - Bhutanese Ngultrum</option>
-                    <option value="BTC">BTC - Bitcoin</option>
-                    <option value="BOB">BOB - Bolivian Boliviano</option>
-                    <option value="BAM">BAM - Bosnia-Herzegovina Convertible Mark</option>
-                    <option value="BWP">BWP - Botswanan Pula</option>
-                    <option value="BRL">BRL - Brazilian Real</option>
-                    <option value="GBP">GBP - British Pound Sterling</option>
-                    <option value="BND">BND - Brunei Dollar</option>
-                    <option value="BGN">BGN - Bulgarian Lev</option>
-                    <option value="BIF">BIF - Burundian Franc</option>
-                    <option value="KHR">KHR - Cambodian Riel</option>
-                    <option value="CAD">CAD - Canadian Dollar</option>
-                    <option value="CVE">CVE - Cape Verdean Escudo</option>
-                    <option value="KYD">KYD - Cayman Islands Dollar</option>
-                    <option value="XOF">XOF - CFA Franc BCEAO</option>
-                    <option value="XAF">XAF - CFA Franc BEAC</option>
-                    <option value="XPF">XPF - CFP Franc</option>
-                    <option value="CLP">CLP - Chilean Peso</option>
-                    <option value="CNY">CNY - Chinese Yuan</option>
-                    <option value="COP">COP - Colombian Peso</option>
-                    <option value="KMF">KMF - Comorian Franc</option>
-                    <option value="CDF">CDF - Congolese Franc</option>
-                    <option value="CRC">CRC - Costa Rican Colón</option>
-                    <option value="HRK">HRK - Croatian Kuna</option>
-                    <option value="CUC">CUC - Cuban Convertible Peso</option>
-                    <option value="CZK">CZK - Czech Koruna</option>
-                    <option value="DKK">DKK - Danish Krone</option>
-                    <option value="DJF">DJF - Djiboutian Franc</option>
-                    <option value="DOP">DOP - Dominican Peso</option>
-                    <option value="XCD">XCD - East Caribbean Dollar</option>
-                    <option value="EGP">EGP - Egyptian Pound</option>
-                    <option value="ERN">ERN - Eritrean Nakfa</option>
-                    <option value="ETB">ETB - Ethiopian Birr</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="FKP">FKP - Falkland Islands Pound</option>
-                    <option value="FJD">FJD - Fijian Dollar</option>
-                    <option value="GMD">GMD - Gambian Dalasi</option>
-                    <option value="GEL">GEL - Georgian Lari</option>
-                    <option value="GHS">GHS - Ghanaian Cedi</option>
-                    <option value="GIP">GIP - Gibraltar Pound</option>
-                    <option value="GTQ">GTQ - Guatemalan Quetzal</option>
-                    <option value="GNF">GNF - Guinean Franc</option>
-                    <option value="GYD">GYD - Guyanaese Dollar</option>
-                    <option value="HTG">HTG - Haitian Gourde</option>
-                    <option value="HNL">HNL - Honduran Lempira</option>
-                    <option value="HKD">HKD - Hong Kong Dollar</option>
-                    <option value="HUF">HUF - Hungarian Forint</option>
-                    <option value="ISK">ISK - Icelandic Króna</option>
-                    <option value="INR">INR - Indian Rupee</option>
-                    <option value="IDR">IDR - Indonesian Rupiah</option>
-                    <option value="IRR">IRR - Iranian Rial</option>
-                    <option value="IQD">IQD - Iraqi Dinar</option>
-                    <option value="ILS">ILS - Israeli New Sheqel</option>
-                    <option value="JMD">JMD - Jamaican Dollar</option>
-                    <option value="JPY">JPY - Japanese Yen</option>
-                    <option value="JOD">JOD - Jordanian Dinar</option>
-                    <option value="KZT">KZT - Kazakhstani Tenge</option>
-                    <option value="KES">KES - Kenyan Shilling</option>
-                    <option value="KWD">KWD - Kuwaiti Dinar</option>
-                    <option value="KGS">KGS - Kyrgystani Som</option>
-                    <option value="LAK">LAK - Laotian Kip</option>
-                    <option value="LBP">LBP - Lebanese Pound</option>
-                    <option value="LSL">LSL - Lesotho Loti</option>
-                    <option value="LRD">LRD - Liberian Dollar</option>
-                    <option value="LYD">LYD - Libyan Dinar</option>
-                    <option value="MOP">MOP - Macanese Pataca</option>
-                    <option value="MKD">MKD - Macedonian Denar</option>
-                    <option value="MGA">MGA - Malagasy Ariary</option>
-                    <option value="MWK">MWK - Malawian Kwacha</option>
-                    <option value="MYR">MYR - Malaysian Ringgit</option>
-                    <option value="MVR">MVR - Maldivian Rufiyaa</option>
-                    <option value="MRU">MRU - Mauritanian Ouguiya</option>
-                    <option value="MUR">MUR - Mauritian Rupee</option>
-                    <option value="MXN">MXN - Mexican Peso</option>
-                    <option value="MDL">MDL - Moldovan Leu</option>
-                    <option value="MNT">MNT - Mongolian Tugrik</option>
-                    <option value="MAD">MAD - Moroccan Dirham</option>
-                    <option value="MZN">MZN - Mozambican Metical</option>
-                    <option value="MMK">MMK - Myanmar Kyat</option>
-                    <option value="NAD">NAD - Namibian Dollar</option>
-                    <option value="NPR">NPR - Nepalese Rupee</option>
-                    <option value="ANG">ANG - Netherlands Antillean Guilder</option>
-                    <option value="TWD">TWD - New Taiwan Dollar</option>
-                    <option value="NZD">NZD - New Zealand Dollar</option>
-                    <option value="NIO">NIO - Nicaraguan Córdoba</option>
-                    <option value="NGN">NGN - Nigerian Naira</option>
-                    <option value="KPW">KPW - North Korean Won</option>
-                    <option value="NOK">NOK - Norwegian Krone</option>
-                    <option value="OMR">OMR - Omani Rial</option>
-                    <option value="PKR">PKR - Pakistani Rupee</option>
-                    <option value="PAB">PAB - Panamanian Balboa</option>
-                    <option value="PGK">PGK - Papua New Guinean Kina</option>
-                    <option value="PYG">PYG - Paraguayan Guarani</option>
-                    <option value="PEN">PEN - Peruvian Sol</option>
-                    <option value="PHP">PHP - Philippine Peso</option>
-                    <option value="PLN">PLN - Polish Zloty</option>
-                    <option value="QAR">QAR - Qatari Rial</option>
-                    <option value="RON">RON - Romanian Leu</option>
-                    <option value="RUB">RUB - Russian Ruble</option>
-                    <option value="RWF">RWF - Rwandan Franc</option>
-                    <option value="SAR">SAR - Saudi Riyal</option>
-                    <option value="SDG">SDG - Sudanese Pound</option>
-                    <option value="SRD">SRD - Surinamese Dollar</option>
-                    <option value="SZL">SZL - Swazi Lilangeni</option>
-                    <option value="SEK">SEK - Swedish Krona</option>
-                    <option value="CHF">CHF - Swiss Franc</option>
-                    <option value="STN">STN - São Tomé and Príncipe Dobra</option>
-                    <option value="VES">VES - Venezuelan Bolívar</option>
-                    <option value="ZMW">ZMW - Zambian Kwacha</option>
-                </select>
-                <label for="add_rate">Rate</label>
-                <input type="text" id="rate_id" name="rate_name" placeholder="1.25678">
-            </div>
-            <!----------------------------------------------------------------------------------->
+      <!-- Type -->
+      <div class="type_cls">
+        <label for="txn_type">Type</label>
+        <select id="txn_type" name="txn_type" required>
+          <option value="" selected disabled>Choose type</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
 
-            <div class="type_cls">
-                <label for="add_type">Type</label>
-                <select id="type_id" name="type_name" required>
-                    <option>Choose your Type</option>
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
-                </select>
-            </div>
+      <!-- Category -->
+      <div class="category_cls">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="" selected disabled>Choose category</option>
+          <option value="salary">Salary</option>
+          <option value="tips">Tips</option>
+          <option value="rent">Rent</option>
+          <option value="electric_bill">Electric Bill</option>
+          <option value="groceries">Groceries</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-            <div class="catagory_cls">
-                <label for="add_catagory">Category</label>
-                <select id="category_id" name="category_name" required>
-                    <option>Choose your Category</option>
-                    <option value="s_income">Income</option>
-                    <option value="e_bill">Electric Bill</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+      <!-- Note -->
+      <div class="note_cls">
+        <label for="note">Note (optional)</label>
+        <input
+          type="text"
+          id="note"
+          name="note"
+          placeholder="Any details..."
+          maxlength="200"
+        />
+      </div>
 
-            <div class="date_period_cls">
-                <label>Date Paid</label>
-                <input type="date" name="date_paid">
+      <!-- Dates -->
+      <div class="dates_cls">
+        <label for="date_paid">Date Paid (optional)</label>
+        <input type="date" id="date_paid" name="date_paid" />
+        <small>If empty, the app can default to today.</small>
 
-            </div>
+        <label for="period_month">Period Month</label>
+        <input type="month" id="period_month" name="period_month" required />
+        <small>This is the month the transaction belongs to.</small>
+      </div>
 
-            <div class="date_paid_cls">
-                <label>Date Paid</label>
-                <input type="date" name="date_paid">
-            </div>
+      <hr />
 
-            <div class="date_paid_cls">
-                <button type="submit">Save</button>
-            </div>
+      <!-- Optional Multi-currency block -->
+      <div class="multi_currency_cls">
+        <p><strong>Optional (only if you want conversion to a home currency):</strong></p>
 
-        </form>
-    </div>
+        <label for="home_currency_code">Home Currency</label>
+        <select id="home_currency_code" name="home_currency_code">
+          <option value="" selected>— select (optional) —</option>
+          <option value="USD">USD - US Dollar</option>
+          <option value="EUR">EUR - Euro</option>
+          <option value="TRY">TRY - Turkish Lira</option>
+          <option value="CAD">CAD - Canadian Dollar</option>
+          <option value="GBP">GBP - British Pound</option>
+        </select>
+
+        <label for="exchange_rate">Exchange Rate to Home (optional)</label>
+        <input
+          type="number"
+          id="exchange_rate"
+          name="exchange_rate"
+          placeholder="1.08470000"
+          step="0.00000001"
+          min="0"
+        />
+        <small>Example: 1 EUR = 1.0847 USD → rate = 1.0847</small>
+
+        <label for="amount_home">Home Amount (optional)</label>
+        <input
+          type="number"
+          id="amount_home"
+          name="amount_home"
+          placeholder="20.59"
+          step="0.01"
+          min="0"
+        />
+        <small>If you leave this empty, your route can compute it: amount * rate.</small>
+      </div>
+
+      <div class="submit_cls">
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </div>
 </section>
 
 {% endblock %}
