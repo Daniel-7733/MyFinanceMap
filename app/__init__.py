@@ -2,6 +2,11 @@
                             *************************************
 
                                     creates the app once
+                                    More precise:
+                                        1. creates the Flask app (create_app)
+                                        2. loads config
+                                        3. initializes extensions (SQLAlchemy)
+                                        4. registers blueprints
 
                             *************************************
 """
