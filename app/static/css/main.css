@@ -1,0 +1,34 @@
+* {
+    font-family:'Courier New', Courier, monospace;
+    background-color: rgb(243, 243, 243);
+}
+
+.navbar ul {
+    list-style-type: none;
+    background-color: #6e6666;
+    padding: 0px; /* This one change the size of the nav bar from top to bottom */
+    margin: 0px;
+    overflow: hidden; /* clear floats and write the items horizontally not vertically */
+    border-radius: 8px; /* rounded corners */
+}
+
+.navbar ul li {
+    float: left;
+}
+
+.navbar ul li a {
+    display: block;
+    padding: 14px 16px;
+    color: rgb(5, 5, 5);
+    text-align: center;
+    text-decoration: none; /* remove underline */
+}
+
+.navbar ul li a:hover {
+    background-color: #575757;
+}
+
+
+footer {
+    font-size: 10px;
+}
