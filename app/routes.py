@@ -9,6 +9,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from decimal import Decimal, InvalidOperation
 from datetime import date
+from models import Transaction
 
 
 main: Blueprint = Blueprint("main", __name__)
@@ -105,5 +106,20 @@ def add_transaction() -> Response | str:
         }
 
         print(debug_payload)
+
+        transaction: Transaction = Transaction(
+            txn_type=txn_type,
+            amount=amount,
+            currency=currency,
+            category=category,
+            note=note,
+            date_paid=date_paid_obj,
+            period_month=period_month_obj,
+            home_currency=home_currency,
+            exchange_rate_to_home=rate,
+            amount_home=amount_home,
+            created_at=current_time, # TODO: current_time is not made yet.
+        )
+        # TODO: Commit the Transaction
         return redirect(url_for("main.home"))
     return render_template("add_transaction.html")
