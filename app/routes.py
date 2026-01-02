@@ -9,7 +9,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from decimal import Decimal, InvalidOperation
 from datetime import date
-from models import Transaction
+from .models import Transaction, db
 
 
 main: Blueprint = Blueprint("main", __name__)
@@ -35,7 +35,7 @@ def add_transaction() -> Response | str:
     if request.method == "POST":
         amount_raw: str = request.form.get("amount", "").strip() # Safer than request.form["x"] (doesn't crash if missing)
         try:
-            amount: Decimal = Decimal(amount_raw)
+            amount: Decimal = Decimal(amount_raw).quantize(Decimal("0.01"))
         except (InvalidOperation, TypeError):
             flash("Amount must be a valid number like 19.00", "error")
             return render_template("add_transaction.html")
@@ -77,7 +77,7 @@ def add_transaction() -> Response | str:
         amount_home: Decimal | None = None
         if amount_home_raw:
             try:
-                amount_home = Decimal(amount_home_raw)
+                amount_home = Decimal(amount_home_raw).quantize(Decimal("0.01"))
             except (InvalidOperation, TypeError):
                 flash("Home amount must be a valid number like 25.00", "error")
                 return render_template("add_transaction.html")
@@ -92,34 +92,24 @@ def add_transaction() -> Response | str:
         if multi_used and amount_home is None and rate is not None:
             amount_home: Decimal | None = (amount * rate).quantize(Decimal("0.01"))
 
-        debug_payload: dict[str, object] = {
-            "amount": amount,
-            "currency": currency,
-            "type": txn_type,
-            "category": category,
-            "note": note,
-            "date_paid": date_paid_obj,
-            "period_month": period_month_obj,
-            "home_currency": home_currency,
-            "exchange_rate": rate,
-            "amount_home": amount_home,
-        }
-
-        print(debug_payload)
-
-        transaction: Transaction = Transaction(
+        transaction = Transaction(
             txn_type=txn_type,
             amount=amount,
             currency=currency,
             category=category,
-            note=note,
+            note=note or None,
             date_paid=date_paid_obj,
             period_month=period_month_obj,
             home_currency=home_currency,
             exchange_rate_to_home=rate,
             amount_home=amount_home,
-            created_at=current_time, # TODO: current_time is not made yet.
         )
-        # TODO: Commit the Transaction
+        db.session.add(transaction)
+        db.session.commit()
+
+        transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+        for t in transactions:
+            print(t.id, t.txn_type, t.amount, t.currency, t.category, t.date_paid, t.period_month)
+
         return redirect(url_for("main.home"))
     return render_template("add_transaction.html")
