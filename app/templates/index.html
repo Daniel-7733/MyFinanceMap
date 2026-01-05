@@ -4,12 +4,29 @@
 
     <p>
         Welcome to home page.
-        You can check. You can add.
     </p>
 
     <h1>
         You have {{ amount }}
     </h1>
 
+    <h1>
+        Your Transaction:
+    </h1>
+        {% for transaction in transactions %}
+        <p>
+            <lu>
+                <li>
+                    ID: {{ transaction.id }}
+                    - Type: {{ transaction.txn_type }}
+                    - Amount: {{ transaction.amount }}
+                    - Currency: {{ transaction.currency }}
+                    - Category: {{ transaction.category }}
+                    - Date of Paid: {{ transaction.date_paid }}
+                    - Period Month: {{ transaction.period_month }}
+                </li> </b>
+            </lu>
+        </p>
+        {% endfor %}
 
 {% endblock %}

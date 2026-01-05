@@ -10,7 +10,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from decimal import Decimal, InvalidOperation
 from datetime import date
 from .models import Transaction, db
-
+from .services.budgeting import total_amount
 
 main: Blueprint = Blueprint("main", __name__)
 
@@ -20,9 +20,19 @@ def home() -> str:
     """
     :return: home page
     """
+    transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+
+    transactions_amount: list[Decimal] = []
+    for t in transactions:
+        transactions_amount.append(t.amount)
+    user_total_amount: Decimal = total_amount(transactions_amount)
+
+    # for t in transactions:
+    #     print(t.id, t.txn_type, t.amount, t.currency, t.category, t.date_paid, t.period_month)
     return render_template(
         "index.html",
-        amount=f"You have 20.00 USD"
+        amount=f"You have {user_total_amount:,} USD", # Currency will be user main currency; the main currency that everything is change to it
+        transactions=transactions
     )
 
 
@@ -33,7 +43,8 @@ def add_transaction() -> Response | str:
     :return: Add Transaction page
      """
     if request.method == "POST":
-        amount_raw: str = request.form.get("amount", "").strip() # Safer than request.form["x"] (doesn't crash if missing)
+        amount_raw: str = request.form.get("amount",
+                                           "").strip()  # Safer than request.form["x"] (doesn't crash if missing)
         try:
             amount: Decimal = Decimal(amount_raw).quantize(Decimal("0.01"))
         except (InvalidOperation, TypeError):
@@ -92,7 +103,7 @@ def add_transaction() -> Response | str:
         if multi_used and amount_home is None and rate is not None:
             amount_home: Decimal | None = (amount * rate).quantize(Decimal("0.01"))
 
-        transaction = Transaction(
+        transaction: Transaction = Transaction(
             txn_type=txn_type,
             amount=amount,
             currency=currency,
@@ -106,10 +117,6 @@ def add_transaction() -> Response | str:
         )
         db.session.add(transaction)
         db.session.commit()
-
-        transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
-        for t in transactions:
-            print(t.id, t.txn_type, t.amount, t.currency, t.category, t.date_paid, t.period_month)
 
         return redirect(url_for("main.home"))
     return render_template("add_transaction.html")

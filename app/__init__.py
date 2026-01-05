@@ -20,6 +20,10 @@ from .models import db
 
 
 def create_app() -> Flask:
+    """
+    This function creates the app instance.
+    :return: Flask app
+    """
     app: Flask = Flask(__name__, instance_relative_config=True)
     makedirs(app.instance_path, exist_ok=True)
 
@@ -40,6 +44,3 @@ def create_app() -> Flask:
     app.register_blueprint(main, url_prefix="/")
 
     return app
-
-
-

@@ -27,6 +27,8 @@ def total_income(incomes: list[Decimal]) -> Decimal:
     """
     return sum(incomes)
 
+def total_amount(amount: list[Decimal]) -> Decimal:
+    return sum(amount)
 
 # def add_transaction() -> int: This need modification
 #     total: int = sum(transaction.amount for transaction in transactions)

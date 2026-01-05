@@ -27,10 +27,7 @@ class DevConfig(BaseConfig):
     """Common settings for development environments"""
     DEBUG: bool = True
     SECRET_KEY: str = getenv("SECRET_KEY", "dev-only-change-me")  # OK for local dev
-    SQLALCHEMY_DATABASE_URI: str = getenv(
-        "DATABASE_URL",
-        "sqlite:///instance/myfinancemap.db",
-    )
+
 
 
 @dataclass(frozen=True)
@@ -38,4 +35,3 @@ class ProdConfig(BaseConfig):
     """Common settings for production environments"""
     DEBUG: bool = False
     SECRET_KEY: str = _required("SECRET_KEY")          # must exist in production
-    SQLALCHEMY_DATABASE_URI: str = _required("DATABASE_URL")  # must exist in production
