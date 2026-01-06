@@ -8,12 +8,21 @@
 """
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from decimal import Decimal, InvalidOperation
-from datetime import date
+from datetime import date, datetime
 from .models import Transaction, db
-from .services.budgeting import total_amount
+from .services.summary import get_balance
 
 main: Blueprint = Blueprint("main", __name__)
 
+
+
+@main.context_processor
+def inject_current_year() -> dict[str, int]:
+    """
+    This function automatically update the year of footer for copy right in base.html
+    :return: current year
+    """
+    return {"current_year": datetime.now().year}
 
 @main.route("/")
 def home() -> str:
@@ -21,17 +30,11 @@ def home() -> str:
     :return: home page
     """
     transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    balance: Decimal = get_balance(transactions)
 
-    transactions_amount: list[Decimal] = []
-    for t in transactions:
-        transactions_amount.append(t.amount)
-    user_total_amount: Decimal = total_amount(transactions_amount)
-
-    # for t in transactions:
-    #     print(t.id, t.txn_type, t.amount, t.currency, t.category, t.date_paid, t.period_month)
     return render_template(
         "index.html",
-        amount=f"You have {user_total_amount:,} USD", # Currency will be user main currency; the main currency that everything is change to it
+        amount=f"You have {balance:,} USD", # TODO: Currency will be user main currency; the main currency that everything is change to it
         transactions=transactions
     )
 

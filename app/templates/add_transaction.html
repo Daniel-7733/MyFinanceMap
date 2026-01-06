@@ -21,14 +21,14 @@
         />
 
         <label for="currency_code">Currency</label>
-        <input
-          type="text"
-          id="currency_code"
-          name="currency_code"
-          placeholder="USD"
-          maxlength="3"
-          required
-        />
+        <select id="currency_code" name="currency_code">
+          <option value="" selected disabled>— select (optional) —</option>
+          <option value="USD">USD - US Dollar</option>
+          <option value="EUR">EUR - Euro</option>
+          <option value="TRY">TRY - Turkish Lira</option>
+          <option value="CAD">CAD - Canadian Dollar</option>
+          <option value="GBP">GBP - British Pound</option>
+        </select>
         <small>Use currency codes like USD, EUR, TRY.</small>
       </div>
 
@@ -82,6 +82,7 @@
       <hr />
 
       <!-- Optional Multi-currency block -->
+      <!-- TODO: This one will have its own box and save button & it'll be full form -->
       <div class="multi_currency_cls">
         <p><strong>Optional (only if you want conversion to a home currency):</strong></p>
 
