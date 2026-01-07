@@ -8,9 +8,8 @@
 """
 
 from decimal import Decimal
+from app.constants import MONEY_2DP
 
-
-MONEY_2DP: Decimal = Decimal("0.01")
 
 
 def total_income(incomes: list[Decimal]) -> Decimal:

@@ -34,7 +34,7 @@ def home() -> str:
 
     return render_template(
         "index.html",
-        amount=f"You have {balance:,} USD", # TODO: Currency will be user main currency; the main currency that everything is change to it
+        amount=f"You have {balance:,.2f} USD", # TODO: Currency will be user main currency; the main currency that everything is change to it
         transactions=transactions
     )
 
