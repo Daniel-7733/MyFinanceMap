@@ -7,7 +7,7 @@
     <form method="POST" action="{{ url_for('main.add_transaction') }}">
       <h1>Add Transaction</h1>
 
-      <!-- Amount + Currency (original transaction) -->
+      <!-- Amount + Currency -->
       <div class="amount_cls">
         <label for="amount">Amount</label>
         <input
@@ -21,15 +21,15 @@
         />
 
         <label for="currency_code">Currency</label>
-        <select id="currency_code" name="currency_code">
-          <option value="" selected disabled>— select (optional) —</option>
-          <option value="USD">USD - US Dollar</option>
+        <select id="currency_code" name="currency_code" required>
+          <!-- MAIN currency is default (change USD to whatever your main currency is) -->
+          <option value="USD" selected>USD - US Dollar</option>
           <option value="EUR">EUR - Euro</option>
           <option value="TRY">TRY - Turkish Lira</option>
           <option value="CAD">CAD - Canadian Dollar</option>
           <option value="GBP">GBP - British Pound</option>
         </select>
-        <small>Use currency codes like USD, EUR, TRY.</small>
+        <small>Main currency is selected by default. Change only if needed.</small>
       </div>
 
       <!-- Type -->
@@ -79,24 +79,19 @@
         <small>This is the month the transaction belongs to.</small>
       </div>
 
-      <hr />
-
-      <!-- Optional Multi-currency block -->
-      <!-- TODO: This one will have its own box and save button & it'll be full form -->
-      <div class="multi_currency_cls">
-        <p><strong>Optional (only if you want conversion to a home currency):</strong></p>
-
-        <label for="home_currency_code">Home Currency</label>
-        <select id="home_currency_code" name="home_currency_code">
-          <option value="" selected>— select (optional) —</option>
-          <option value="USD">USD - US Dollar</option>
-          <option value="EUR">EUR - Euro</option>
-          <option value="TRY">TRY - Turkish Lira</option>
-          <option value="CAD">CAD - Canadian Dollar</option>
-          <option value="GBP">GBP - British Pound</option>
+      <!-- Payment Method -->
+      <div class="method_cls">
+        <label for="method">Method</label>
+        <select id="method" name="method" required>
+          <option value="" selected disabled>Choose method</option>
+          <option value="card">Card</option>
+          <option value="cash">Cash</option>
         </select>
+      </div>
 
-        <label for="exchange_rate">Exchange Rate to Home (optional)</label>
+      <!-- Exchange Rate (only if currency != MAIN_CURRENCY) -->
+      <div class="multi_currency_cls" id="rate_block" style="display:none;">
+        <label for="exchange_rate">Exchange Rate to Main Currency</label>
         <input
           type="number"
           id="exchange_rate"
@@ -105,18 +100,10 @@
           step="0.00000001"
           min="0"
         />
-        <small>Example: 1 EUR = 1.0847 USD → rate = 1.0847</small>
-
-        <label for="amount_home">Home Amount (optional)</label>
-        <input
-          type="number"
-          id="amount_home"
-          name="amount_home"
-          placeholder="20.59"
-          step="0.01"
-          min="0"
-        />
-        <small>If you leave this empty, your route can compute it: amount * rate.</small>
+        <small>
+          Only required when you choose a different currency.
+          Example: 1 EUR = 1.0847 USD → rate = 1.0847
+        </small>
       </div>
 
       <div class="submit_cls">
@@ -125,5 +112,7 @@
     </form>
   </div>
 </section>
+
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 
 {% endblock %}
