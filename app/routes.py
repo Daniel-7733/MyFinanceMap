@@ -10,6 +10,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from .models import Transaction, db
+from .services.budgeting import available_balance, deficit_amount
 from .services.summary import get_balance
 
 
@@ -36,9 +37,15 @@ def home() -> str:
     transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
     balance: Decimal = get_balance(transactions)
 
+    available: Decimal = available_balance(balance)
+    deficit: Decimal = deficit_amount(balance)
+    currency: str = "USD"
     return render_template(
         "index.html",
-        amount=f"You have {balance:,.2f} USD", # TODO: Currency will be user main currency; the main currency that everything is change to it
+        balance=f"{balance:,.2f}", # TODO: Currency will be user main currency; the main currency that everything is change to it
+        available=f"{available:,.2f}",
+        deficit=f"{deficit:,.2f}",
+        currency=currency,
         transactions=transactions
     )
 
