@@ -19,6 +19,13 @@ def total_income(incomes: list[Decimal]) -> Decimal:
     """
     return sum(incomes, Decimal("0"))
 
+def total_expense(expenses: list[Decimal]) -> Decimal: # This is duplicate and I might delete it in future
+    """
+    Calculate total expense from a list of Decimal values.
+    Safe even if the list is empty.
+    """
+    return sum(expenses, Decimal("0"))
+
 
 def calculate_balance(incomes: list[Decimal], expenses: list[Decimal]) -> Decimal:
     """

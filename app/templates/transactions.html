@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}My Finance Map{% endblock %}
+{% block content %}
+
+    <h1>Transactions page.</h1>
+    <h2>Available: {{ available }} {{ currency }}</h2>
+    <h2>deficit: {{ deficit }} {{ currency }}</h2>
+    <b>Your Transactions Table:</b>
+
+    <!-- Transactions Table-->
+    <table class="transactions-cls">
+
+        <!-- table Header-->
+        <tr class="header-cls">
+            <th>ID:</th>
+            <th>Type:</th>
+            <th>Amount:</th>
+            <th>Category:</th>
+            <th>Date of Paid:</th>
+            <th>Period Month:</th>
+        </tr>
+
+        <!-- table data-->
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.id }}</td>
+            <td>{{ transaction.txn_type }}</td>
+            <td>
+                {{ "{:,.2f}".format(transaction.amount) }} {{ transaction.currency }}
+                {% if transaction.currency != currency %}
+                ({{ "{:,.2f}".format(transaction.amount_home) }} {{ currency }})
+                {% endif %}
+            </td>
+            <td>{{ transaction.category }}</td>
+            <td>{{ transaction.date_paid }}</td>
+            <td>{{ transaction.period_month }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

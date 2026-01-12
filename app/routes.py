@@ -10,14 +10,13 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from .models import Transaction, db
-from .services.budgeting import available_balance, deficit_amount
-from .services.summary import get_balance
-
-
-MAIN_CURRENCY: str = "USD"  # later: load from user settings / config
+from .services.summary import get_finance_overview
 
 
 main: Blueprint = Blueprint("main", __name__)
+
+
+MAIN_CURRENCY: str = "USD"  # TODO: (later) load from user settings / config
 
 
 
@@ -34,24 +33,18 @@ def home() -> str:
     """
     :return: home page
     """
-    transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
-    balance: Decimal = get_balance(transactions)
 
-    available: Decimal = available_balance(balance)
-    deficit: Decimal = deficit_amount(balance)
-    currency: str = "USD"
+    transactions, balance, available, deficit = get_finance_overview()
+
     return render_template(
         "index.html",
-        balance=f"{balance:,.2f}", # TODO: Currency will be user main currency; the main currency that everything is change to it
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
-        currency=currency,
-        transactions=transactions
+        currency=MAIN_CURRENCY,
     )
 
 
-
-@main.route("/transactions", methods=["GET", "POST"])
+@main.route("/transactions-add", methods=["GET", "POST"])
 def add_transaction() -> Response | str:
     if request.method == "POST":
         # --- amount ---
@@ -132,7 +125,20 @@ def add_transaction() -> Response | str:
 
         db.session.add(transaction)
         db.session.commit()
-        return redirect(url_for("main.home"))
+        return redirect(url_for("main.show_transactions"))
 
     return render_template("add_transaction.html")
+
+
+@main.route("/transactions")
+def show_transactions() -> str:
+
+    transactions, balance, available, deficit = get_finance_overview()
+
+    return render_template(
+        "transactions.html",
+        available=f"{available:,.2f}",
+        deficit=f"{deficit:,.2f}",
+        currency=MAIN_CURRENCY,
+        transactions=transactions)
 

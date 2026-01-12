@@ -2,40 +2,8 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-    <p>
-        Welcome to home page.
-    </p>
-
-    <h1>
-        Total Amount: {{ balance }} {{ currency }}
-    </h1>
-
-    <h2>
-        Available: {{ available }} {{ currency }}
-    </h2>
-
-    <h2>
-        deficit: {{ deficit }} {{ currency }}
-    </h2>
-
-
-    <h1>
-        Your Transaction:
-    </h1>
-        {% for transaction in transactions %}
-        <p>
-            <lu>
-                <li>
-                    ID: {{ transaction.id }}
-                    - Type: {{ transaction.txn_type }}
-                    - Amount: {{ transaction.amount }}
-                    - Currency: {{ transaction.currency }}
-                    - Category: {{ transaction.category }}
-                    - Date of Paid: {{ transaction.date_paid }}
-                    - Period Month: {{ transaction.period_month }}
-                </li> </b>
-            </lu>
-        </p>
-        {% endfor %}
+    <p>Welcome to home page.</p>
+    <h1>Available: {{ available }} {{ currency }}</h1>
+    <h2>deficit: {{ deficit }} {{ currency }}</h2>
 
 {% endblock %}
