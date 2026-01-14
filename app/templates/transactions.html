@@ -34,6 +34,10 @@
             <td>{{ transaction.category }}</td>
             <td>{{ transaction.date_paid }}</td>
             <td>{{ transaction.period_month }}</td>
+
+            <!-- Edit & Delete btn -->
+            <td><a href="{{ url_for('main.edit_transaction', id=transaction.id) }}">Edit</a></td>
+            <!-- <td><button type="button">Delete</button></td> -->
         </tr>
         {% endfor %}
     </table>
