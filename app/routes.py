@@ -131,6 +131,7 @@ def add_transaction() -> Response | str:
 
 @main.route("/transactions", methods=["GET", "POST"])
 def show_transactions() -> str:
+    """Show all transactions in transactions page"""
     transactions, balance, available, deficit = get_finance_overview()
 
     return render_template(
@@ -143,6 +144,7 @@ def show_transactions() -> str:
 
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
 def edit_transaction(id: int) -> Response | str:
+    """Edit transaction page"""
     transaction: Transaction = Transaction.query.get_or_404(id)
 
     if request.method == "POST":
@@ -224,3 +226,18 @@ def edit_transaction(id: int) -> Response | str:
         return redirect(url_for("main.show_transactions"))
 
     return render_template("edit_transaction.html", transaction=transaction, id=id)
+
+
+@main.route("/transactions-delete/<int:id>", methods=["GET", "POST"])
+def delete_transaction(id: int) -> Response | str:
+    """Delete transaction page"""
+    transaction: Transaction = Transaction.query.get_or_404(id)
+
+    if request.method == "POST":
+        db.session.delete(transaction)
+        db.session.commit()
+        flash("Transaction updated.", "success")
+
+        return redirect(url_for("main.show_transactions"))
+    return render_template("delete_transaction.html", transaction=transaction, id=id)
+
