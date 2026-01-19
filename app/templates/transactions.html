@@ -2,45 +2,59 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-    <h1>Transactions page.</h1>
-    <h2>Available: {{ available }} {{ currency }}</h2>
-    <h2>deficit: {{ deficit }} {{ currency }}</h2>
-    <b>Your Transactions Table:</b>
+<h1>Transactions page.</h1>
 
-    <!-- Transactions Table-->
-    <table class="transactions-cls">
+<h1>Available: {{ available }} {{ currency }}</h1>
+<h2>deficit: {{ deficit }} {{ currency }}</h2>
 
-        <!-- table Header-->
-        <tr class="header-cls">
-            <th>ID:</th>
-            <th>Type:</th>
-            <th>Amount:</th>
-            <th>Category:</th>
-            <th>Date of Paid:</th>
-            <th>Period Month:</th>
-        </tr>
+<form method="GET" action="{{ url_for('main.show_transactions') }}">
+  <label for="user_period_month">Filter by month</label>
+  <input
+    type="month"
+    id="user_period_month"
+    name="month"
+    value="{{ selected_month or '' }}"
+    onchange="this.form.submit()"
+  />
+  <noscript><button type="submit">Filter</button></noscript>
+  <a href="{{ url_for('main.show_transactions') }}">Clear</a>
+</form>
 
-        <!-- table data-->
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction.id }}</td>
-            <td>{{ transaction.txn_type }}</td>
-            <td>
-                {{ "{:,.2f}".format(transaction.amount) }} {{ transaction.currency }}
-                {% if transaction.currency != currency %}
-                ({{ "{:,.2f}".format(transaction.amount_home) }} {{ currency }})
-                {% endif %}
-            </td>
-            <td>{{ transaction.category }}</td>
-            <td>{{ transaction.date_paid }}</td>
-            <td>{{ transaction.period_month }}</td>
 
-            <!-- Edit & Delete btn -->
-            <td><a href="{{ url_for('main.edit_transaction', id=transaction.id) }}">Edit</a></td>
-            <td><a href="{{ url_for('main.delete_transaction', id=transaction.id) }}">Delete</a></td>
-            <!-- <td><button type="button">Delete</button></td> -->
-        </tr>
-        {% endfor %}
-    </table>
+<b>Your Transactions Table:</b>
+
+<!-- Transactions Table -->
+<table class="transactions-cls">
+  <!-- Header -->
+  <tr class="header-cls">
+    <th>ID</th>
+    <th>Type</th>
+    <th>Amount</th>
+    <th>Category</th>
+    <th>Date Paid</th>
+    <th>Period Month</th>
+    <th></th> <!-- For edit btn -->
+    <th></th> <!-- For delete btn -->
+  </tr>
+
+  <!-- Transaction Detail -->
+  {% for transaction in transactions %}
+  <tr>
+    <td>{{ transaction.id }}</td>
+    <td>{{ transaction.txn_type }}</td>
+    <td>
+      {{ "{:,.2f}".format(transaction.amount) }} {{ transaction.currency }}
+      {% if transaction.currency != currency %}
+        ({{ "{:,.2f}".format(transaction.amount_home) }} {{ currency }})
+      {% endif %}
+    </td>
+    <td>{{ transaction.category }}</td>
+    <td>{{ transaction.date_paid }}</td>
+    <td>{{ transaction.period_month }}</td>
+    <td><a href="{{ url_for('main.edit_transaction', id=transaction.id) }}">Edit</a></td>
+    <td><a href="{{ url_for('main.delete_transaction', id=transaction.id) }}">Delete</a></td>
+  </tr>
+  {% endfor %}
+</table>
 
 {% endblock %}

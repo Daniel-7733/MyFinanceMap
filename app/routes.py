@@ -9,9 +9,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
+from sqlalchemy.orm import Query
 from .models import Transaction, db
-from .services.summary import get_finance_overview
-
+from .services.budgeting import available_balance, deficit_amount
+from .services.summary import get_finance_overview, get_balance
 
 main: Blueprint = Blueprint("main", __name__)
 
@@ -129,17 +130,37 @@ def add_transaction() -> Response | str:
     return render_template("add_transaction.html")
 
 
-@main.route("/transactions", methods=["GET", "POST"])
+@main.route("/transactions", methods=["GET"])
 def show_transactions() -> str:
-    """Show all transactions in transactions page"""
-    transactions, balance, available, deficit = get_finance_overview()
+    month_str: str | None = request.args.get("month")  # "YYYY-MM"
+
+    query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
+
+    selected_month: str | None = None
+    if month_str:
+        try:
+            year_str, mon_str = month_str.split("-")
+            period_month_obj: date = date(int(year_str), int(mon_str), 1)
+            query = query.filter(Transaction.period_month == period_month_obj)
+            selected_month = month_str
+        except ValueError:
+            selected_month = None  # invalid input → show all (no filter)
+
+    transactions: list[Transaction] = query.all()
+
+    balance: Decimal = get_balance(transactions)
+    available: Decimal = available_balance(balance)
+    # TODO: Also, I need to show the total expanse
+    deficit: Decimal = deficit_amount(balance)
 
     return render_template(
         "transactions.html",
+        transactions=transactions,
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
+        selected_month=selected_month,
         currency=MAIN_CURRENCY,
-        transactions=transactions)
+    )
 
 
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
