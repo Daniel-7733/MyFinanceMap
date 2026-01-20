@@ -51,3 +51,32 @@ def split_amounts_by_type(transactions: Iterable["Transaction"]) -> tuple[list[D
 
     return incomes, expenses
 
+
+def get_available_months(transactions: Iterable["Transaction"]) -> dict[str, str]:
+    """
+    Returns dict mapping 'YYYY-MM' -> 'MonthName YYYY'
+    Example: {'2025-11': 'November 2025'}
+    """
+    options: dict[str, str] = {}
+
+    for t in transactions:
+        pm: date = t.period_month  # use period_month (not date_paid)
+
+        key: str = pm.strftime("%Y-%m")         # '2025-11'
+        label: str = pm.strftime("%B %Y")       # 'November 2025'
+
+        options[key] = label
+
+    # Optional: sort by key (year-month)
+    return dict(sorted(options.items()))
+
+
+def get_current_date() -> str:
+    """
+    Get current date as YYYY-MM
+    Example: November 2025
+    """
+    today: date = date.today()
+    today_m_y: str = today.strftime("%B %Y")
+
+    return today_m_y

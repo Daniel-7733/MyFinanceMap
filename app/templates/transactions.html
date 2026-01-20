@@ -8,15 +8,18 @@
 <h2>deficit: {{ deficit }} {{ currency }}</h2>
 
 <form method="GET" action="{{ url_for('main.show_transactions') }}">
-  <label for="user_period_month">Filter by month</label>
-  <input
-    type="month"
-    id="user_period_month"
-    name="month"
-    value="{{ selected_month or '' }}"
-    onchange="this.form.submit()"
-  />
-  <noscript><button type="submit">Filter</button></noscript>
+
+<label for="month_select">Filter by month</label>
+<select id="month_select" name="month" onchange="this.form.submit()">
+  <option value="" {% if not selected_month %}selected{% endif %}>Show All</option>
+
+  {% for key, label in month_options.items() %}
+    <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
+      {{ label }}
+    </option>
+  {% endfor %}
+</select>
+
   <a href="{{ url_for('main.show_transactions') }}">Clear</a>
 </form>
 
