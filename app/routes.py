@@ -13,7 +13,7 @@ from sqlalchemy.orm import Query
 from .models import Transaction, db
 from .services.budgeting import available_balance, deficit_amount
 from .services.summary import get_finance_overview, get_balance
-from .utils import get_available_months, get_current_date
+from .utils import get_available_months, get_current_month
 
 main: Blueprint = Blueprint("main", __name__)
 
@@ -133,31 +133,32 @@ def add_transaction() -> Response | str:
 
 @main.route("/transactions", methods=["GET"])
 def show_transactions() -> str:
-    """Show transactions page"""
-    month_str: str | None = request.args.get("month")  # "YYYY-MM"
+    month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
 
     base_query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
-
-    # for dropdown options, we need ALL transactions (or distinct period_months)
     all_transactions: list[Transaction] = base_query.all()
     month_options: dict[str, str] = get_available_months(all_transactions)
 
-    # TODO: Always transaction page should show the current month;
-    #  I have the current month but it doesn't work in HTML and I didn't change functions yet for that
-    today: str = get_current_date()
+    today_key, today_label = get_current_month()
 
-    # now filter if user selected a month
     query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
     selected_month: str | None = None
 
-    if month_str:
+    # if user didn’t choose anything → default to current month
+    if not month_str:
+        month_str = today_key
+
+    if month_str == "all":
+        selected_month = "all"
+    else:
         try:
             year_str, mon_str = month_str.split("-")
             period_month_obj: date = date(int(year_str), int(mon_str), 1)
             query = query.filter(Transaction.period_month == period_month_obj)
             selected_month = month_str
         except ValueError:
-            selected_month = None
+            # fallback: show all
+            selected_month = "all"
 
     transactions: list[Transaction] = query.all()
 
@@ -173,8 +174,10 @@ def show_transactions() -> str:
         selected_month=selected_month,
         month_options=month_options,
         currency=MAIN_CURRENCY,
-        today=today,
+        today_key=today_key,
+        today_label=today_label,
     )
+
 
 
 

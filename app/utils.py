@@ -71,12 +71,14 @@ def get_available_months(transactions: Iterable["Transaction"]) -> dict[str, str
     return dict(sorted(options.items()))
 
 
-def get_current_date() -> str:
+def get_current_month() -> tuple[str, str]:
     """
-    Get current date as YYYY-MM
-    Example: November 2025
+    Returns:
+      - key:   "YYYY-MM"  (for <option value=""> and filtering)
+      - label: "Month YYYY" (for showing to the user)
     """
     today: date = date.today()
-    today_m_y: str = today.strftime("%B %Y")
+    key: str = today.strftime("%Y-%m")      # "2026-01"
+    label: str = today.strftime("%B %Y")    # "January 2026"
+    return key, label
 
-    return today_m_y

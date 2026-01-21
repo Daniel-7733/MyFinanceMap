@@ -8,19 +8,27 @@
 <h2>deficit: {{ deficit }} {{ currency }}</h2>
 
 <form method="GET" action="{{ url_for('main.show_transactions') }}">
+  <label for="month_select">Filter by month</label>
 
-<label for="month_select">Filter by month</label>
-<select id="month_select" name="month" onchange="this.form.submit()">
-  <option value="" {% if not selected_month %}selected{% endif %}>Show All</option>
+  <select id="month_select" name="month" onchange="this.form.submit()">
+    <option value="all" {% if selected_month == "all" %}selected{% endif %}>Show All</option>
 
-  {% for key, label in month_options.items() %}
-    <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
-      {{ label }}
+    <!-- Current month option -->
+    <option value="{{ today_key }}" {% if selected_month == today_key %}selected{% endif %}>
+      {{ today_label }} (Current)
     </option>
-  {% endfor %}
-</select>
 
-  <a href="{{ url_for('main.show_transactions') }}">Clear</a>
+    {% for key, label in month_options.items() %}
+      {% if key != today_key %}
+        <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endif %}
+    {% endfor %}
+  </select>
+
+  <noscript><button type="submit">Filter</button></noscript>
+  <a href="{{ url_for('main.show_transactions', month='all') }}">Clear</a>
 </form>
 
 
