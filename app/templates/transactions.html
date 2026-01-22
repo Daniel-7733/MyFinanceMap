@@ -2,10 +2,13 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-<h1>Transactions page.</h1>
+<h1>Your Transactions page</h1>
 
-<h1>Available: {{ available }} {{ currency }}</h1>
-<h2>deficit: {{ deficit }} {{ currency }}</h2>
+<h2>Income ({{ selected_label }}): {{ income }} {{ currency }}</h2>
+<h2>Expenses ({{ selected_label }}): {{ expense }} {{ currency }}</h2>
+<h2>Available: {{ available }} {{ currency }}</h2>
+<h2>Deficit: {{ deficit }} {{ currency }}</h2>
+
 
 <form method="GET" action="{{ url_for('main.show_transactions') }}">
   <label for="month_select">Filter by month</label>

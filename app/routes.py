@@ -11,9 +11,9 @@ from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from sqlalchemy.orm import Query
 from .models import Transaction, db
-from .services.budgeting import available_balance, deficit_amount
+from .services.budgeting import available_balance, deficit_amount, total_income, total_expense
 from .services.summary import get_finance_overview, get_balance
-from .utils import get_available_months, get_current_month
+from .utils import get_available_months, get_current_month, split_income_expense
 
 main: Blueprint = Blueprint("main", __name__)
 
@@ -143,6 +143,7 @@ def show_transactions() -> str:
 
     query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
     selected_month: str | None = None
+    selected_label: str
 
     # if user didn’t choose anything → default to current month
     if not month_str:
@@ -150,6 +151,7 @@ def show_transactions() -> str:
 
     if month_str == "all":
         selected_month = "all"
+        selected_label = "All"
     else:
         try:
             year_str, mon_str = month_str.split("-")
@@ -159,8 +161,15 @@ def show_transactions() -> str:
         except ValueError:
             # fallback: show all
             selected_month = "all"
+            selected_label = month_options.get(month_str, month_str)
 
     transactions: list[Transaction] = query.all()
+
+    incomes, expenses = split_income_expense(transactions)
+    income: Decimal = total_income(incomes)
+    expense: Decimal = total_expense(expenses)
+
+    selected_label = "All" if selected_month == "all" else month_options.get(selected_month, selected_month)
 
     balance: Decimal = get_balance(transactions)
     available: Decimal = available_balance(balance)
@@ -169,6 +178,8 @@ def show_transactions() -> str:
     return render_template(
         "transactions.html",
         transactions=transactions,
+        income=f"{income:,.2f}",
+        expense=f"{expense:,.2f}",
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
         selected_month=selected_month,
@@ -176,6 +187,7 @@ def show_transactions() -> str:
         currency=MAIN_CURRENCY,
         today_key=today_key,
         today_label=today_label,
+        selected_label=selected_label
     )
 
 

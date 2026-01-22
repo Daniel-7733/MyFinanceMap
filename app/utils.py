@@ -36,18 +36,21 @@ def month_start(d: date) -> date:
     return date(d.year, d.month, 1)
 
 
-def split_amounts_by_type(transactions: Iterable["Transaction"]) -> tuple[list[Decimal], list[Decimal]]:
+def split_income_expense(transactions: Iterable["Transaction"]) -> tuple[list[Decimal], list[Decimal]]:
     """
     Split transactions into two lists: (incomes, expenses).
+    :param transactions: transactions iterable
+    :return: two lists: (incomes, expenses)
     """
+
     incomes: list[Decimal] = []
     expenses: list[Decimal] = []
 
     for t in transactions:
         if t.txn_type == "income":
-            incomes.append(t.amount)
+            incomes.append(t.amount_home)
         elif t.txn_type == "expense":
-            expenses.append(t.amount)
+            expenses.append(t.amount_home)
 
     return incomes, expenses
 
