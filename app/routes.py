@@ -15,11 +15,11 @@ from .services.budgeting import available_balance, deficit_amount, total_income,
 from .services.summary import get_finance_overview, get_balance
 from .utils import get_available_months, get_current_month, split_income_expense
 
+
 main: Blueprint = Blueprint("main", __name__)
 
 
 MAIN_CURRENCY: str = "USD"  # TODO: (later) load from user settings / config
-
 
 
 @main.context_processor
@@ -191,8 +191,6 @@ def show_transactions() -> str:
     )
 
 
-
-
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
 def edit_transaction(id: int) -> Response | str:
     """Edit transaction page"""
@@ -292,3 +290,9 @@ def delete_transaction(id: int) -> Response | str:
         return redirect(url_for("main.show_transactions"))
     return render_template("delete_transaction.html", transaction=transaction, id=id)
 
+
+@main.route("/transactions-dashboard", methods=["GET", "POST"])
+def dashboard() -> str:
+    """Dashboard page; Show the analytic of transactions"""
+    transactions, balance, available, deficit = get_finance_overview()
+    return render_template("dashboard.html", balance=balance, deficit=deficit, currency=MAIN_CURRENCY)
