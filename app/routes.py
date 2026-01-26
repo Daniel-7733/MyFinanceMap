@@ -6,11 +6,13 @@
 
                             *************************************
 """
+from typing import Any
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from sqlalchemy.orm import Query
 from .models import Transaction, db
+from .services.analytics import monthly_totals
 from .services.budgeting import available_balance, deficit_amount, total_income, total_expense
 from .services.summary import get_finance_overview, get_balance
 from .utils import get_available_months, get_current_month, split_income_expense
@@ -156,7 +158,7 @@ def show_transactions() -> str:
         try:
             year_str, mon_str = month_str.split("-")
             period_month_obj: date = date(int(year_str), int(mon_str), 1)
-            query = query.filter(Transaction.period_month == period_month_obj)
+            query: Query[Transaction] = query.filter(Transaction.period_month == period_month_obj)
             selected_month = month_str
         except ValueError:
             # fallback: show all
@@ -291,8 +293,22 @@ def delete_transaction(id: int) -> Response | str:
     return render_template("delete_transaction.html", transaction=transaction, id=id)
 
 
-@main.route("/transactions-dashboard", methods=["GET", "POST"])
+@main.route("/dashboard", methods=["GET"])
 def dashboard() -> str:
-    """Dashboard page; Show the analytic of transactions"""
+    last_n_str: str = request.args.get("last_n", "6")
+    try:
+        last_n: int = int(last_n_str)
+    except ValueError:
+        last_n: int = 6
+
     transactions, balance, available, deficit = get_finance_overview()
-    return render_template("dashboard.html", balance=balance, deficit=deficit, currency=MAIN_CURRENCY)
+    month_data: list[dict[str, Any]] = monthly_totals(last_n=last_n)
+
+    return render_template(
+        "dashboard.html",
+        balance=f"{balance:,.2f}",
+        deficit=f"{deficit:,.2f}",
+        currency=MAIN_CURRENCY,
+        month_data=month_data,
+        last_n=last_n,
+    )

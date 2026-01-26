@@ -1,9 +1,45 @@
 {% extends "base.html" %}
-{% block title %}My Finance Map{% endblock %}
+{% block title %}Dashboard | MyFinanceMap{% endblock %}
 {% block content %}
 
-<p>Dashboard page.</p>
-<h1>Your balance is {{ balance }} {{ currency }}</h1>
-<h2>Deficit: {{ deficit }} {{ currency }}</h2>
+<h1>Dashboard</h1>
+
+<h2>Balance: {{ balance }} {{ currency }}</h2>
+<h3>Deficit: {{ deficit }} {{ currency }}</h3>
+
+<form method="GET" action="{{ url_for('main.dashboard') }}">
+  <label for="last_n">Show last N months</label>
+  <input
+    type="number"
+    name="last_n"
+    id="last_n"
+    min="1"
+    max="36"
+    value="{{ last_n or 6 }}"
+  />
+  <button type="submit">Update</button>
+</form>
+
+<hr />
+
+<h2>Monthly totals</h2>
+
+<table>
+  <tr>
+    <th>Month</th>
+    <th>Income</th>
+    <th>Expense</th>
+    <th>Net</th>
+  </tr>
+
+  {% for row in month_data %}
+  <tr>
+    <td>{{ row.month }}</td>
+    <td>{{ "{:,.2f}".format(row.income) }} {{ currency }}</td>
+    <td>{{ "{:,.2f}".format(row.expense) }} {{ currency }}</td>
+    <td>{{ "{:,.2f}".format(row.net) }} {{ currency }}</td>
+  </tr>
+  {% endfor %}
+</table>
 
 {% endblock %}
