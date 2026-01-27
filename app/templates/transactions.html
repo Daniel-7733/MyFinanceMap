@@ -16,17 +16,10 @@
   <select id="month_select" name="month" onchange="this.form.submit()">
     <option value="all" {% if selected_month == "all" %}selected{% endif %}>Show All</option>
 
-    <!-- Current month option -->
-    <option value="{{ today_key }}" {% if selected_month == today_key %}selected{% endif %}>
-      {{ today_label }} (Current)
-    </option>
-
     {% for key, label in month_options.items() %}
-      {% if key != today_key %}
-        <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
-          {{ label }}
-        </option>
-      {% endif %}
+      <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
+        {{ label }}{% if key == today_key %} (Current){% endif %}
+      </option>
     {% endfor %}
   </select>
 

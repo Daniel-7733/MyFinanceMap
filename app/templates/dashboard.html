@@ -4,7 +4,8 @@
 
 <h1>Dashboard</h1>
 
-<h2>Balance: {{ balance }} {{ currency }}</h2>
+<h1>Balance: {{ balance }} {{ currency }}</h1>
+<h2>Balance: {{ available }} {{ currency }}</h2>
 <h3>Deficit: {{ deficit }} {{ currency }}</h3>
 
 <form method="GET" action="{{ url_for('main.dashboard') }}">
@@ -38,6 +39,42 @@
     <td>{{ "{:,.2f}".format(row.income) }} {{ currency }}</td>
     <td>{{ "{:,.2f}".format(row.expense) }} {{ currency }}</td>
     <td>{{ "{:,.2f}".format(row.net) }} {{ currency }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+
+<hr />
+
+<form method="GET" action="{{ url_for('main.dashboard') }}">
+  <label for="month_select">Filter by month</label>
+
+  <select id="month_select" name="month" onchange="this.form.submit()">
+    <option value="all" {% if selected_month == "all" %}selected{% endif %}>Show All</option>
+
+    {% for key, label in month_options.items() %}
+      <option value="{{ key }}" {% if selected_month == key %}selected{% endif %}>
+        {{ label }}{% if key == today_key %} (Current){% endif %}
+      </option>
+    {% endfor %}
+  </select>
+
+  <noscript><button type="submit">Filter</button></noscript>
+  <a href="{{ url_for('main.dashboard') }}">Clear</a>
+</form>
+
+<h2>Selected month: {{ selected_label }}</h2>
+
+<h3>Expenses by category</h3>
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Total</th>
+  </tr>
+  {% for row in category_data %}
+  <tr>
+    <td>{{ row.category }}</td>
+    <td>{{ "{:,.2f}".format(row.total) }} {{ currency }}</td>
   </tr>
   {% endfor %}
 </table>

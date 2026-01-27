@@ -12,10 +12,11 @@ from decimal import Decimal, InvalidOperation
 from datetime import date, datetime
 from sqlalchemy.orm import Query
 from .models import Transaction, db
-from .services.analytics import monthly_totals
+from .services.analytics import monthly_totals, category_totals
 from .services.budgeting import available_balance, deficit_amount, total_income, total_expense
 from .services.summary import get_finance_overview, get_balance
 from .utils import get_available_months, get_current_month, split_income_expense
+
 
 
 main: Blueprint = Blueprint("main", __name__)
@@ -113,7 +114,7 @@ def add_transaction() -> Response | str:
         # (optional) compute home amount for reporting
         amount_home: Decimal = (amount * rate).quantize(Decimal("0.01")) if (is_foreign and rate) else amount
 
-        transaction = Transaction(
+        transaction: Transaction = Transaction(
             txn_type=txn_type,
             amount=amount,
             currency=currency,
@@ -295,20 +296,69 @@ def delete_transaction(id: int) -> Response | str:
 
 @main.route("/dashboard", methods=["GET"])
 def dashboard() -> str:
+    # ---- month dropdown data ----
+    base_query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
+    all_transactions: list[Transaction] = base_query.all()
+
+    month_options: dict[str, str] = get_available_months(all_transactions)
+    today_key, today_label = get_current_month()
+
+    # ---- month selection ----
+    month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
+    if not month_str:
+        month_str = today_key  # default current month
+
+    selected_month: str = month_str
+    selected_label: str = "All" if month_str == "all" else month_options.get(month_str, month_str)
+
+    # ---- fetch filtered transactions ----
+    query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
+
+    period_month_obj: date | None = None
+    if month_str != "all":
+        try:
+            year_str, mon_str = month_str.split("-")
+            period_month_obj = date(int(year_str), int(mon_str), 1)
+            query = query.filter(Transaction.period_month == period_month_obj)
+        except ValueError:
+            selected_month = "all"
+            selected_label = "All"
+
+    transactions: list[Transaction] = query.all()
+
+    # ---- totals for selected scope ----
+    balance: Decimal = get_balance(transactions)
+    available: Decimal = available_balance(balance)
+    deficit: Decimal = deficit_amount(balance)
+
+    # ---- category totals (only meaningful for a specific month) ----
+    category_data: list[dict] = []
+    if period_month_obj:
+        category_data = category_totals(transactions, period_month_obj)
+
+    # ---- last_n chart ----
     last_n_str: str = request.args.get("last_n", "6")
     try:
         last_n: int = int(last_n_str)
     except ValueError:
-        last_n: int = 6
+        last_n = 6
 
-    transactions, balance, available, deficit = get_finance_overview()
     month_data: list[dict[str, Any]] = monthly_totals(last_n=last_n)
 
     return render_template(
         "dashboard.html",
+        transactions=transactions,
         balance=f"{balance:,.2f}",
+        available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
         currency=MAIN_CURRENCY,
         month_data=month_data,
+        category_data=category_data,
         last_n=last_n,
+        month_options=month_options,
+        today_key=today_key,
+        today_label=today_label,
+        selected_month=selected_month,
+        selected_label=selected_label,
     )
+
