@@ -79,4 +79,15 @@
   {% endfor %}
 </table>
 
+
+<hr />
+<!--This is chart part -->
+<h2>Income vs Expense (Monthly)</h2>
+<canvas id="incomeExpenseChart"></canvas>
+
+<script>
+  const chartData = {{ chart_data | tojson }};
+</script>
+
+
 {% endblock %}
