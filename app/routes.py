@@ -15,7 +15,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from sqlalchemy.orm import Query
 
 from .models import Transaction, db
-from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series
+from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals
 from .services.budgeting import available_balance, deficit_amount, total_income, total_expense
 from .services.summary import get_finance_overview, get_balance
 from .utils import get_available_months, get_current_month, split_income_expense
@@ -159,6 +159,8 @@ def dashboard() -> str:
     transactions: list[Transaction] = query.all()
 
     series: dict[str, list] = monthly_income_expense_series(transactions)
+    different_series: dict[str, list] = monthly_income_expense_date_series(transactions)
+    expense_category = category_expense_totals(transactions)
 
     # totals
     balance: Decimal = get_balance(transactions)
@@ -195,4 +197,6 @@ def dashboard() -> str:
         selected_month=selection.month_key,
         selected_label=selection.label,
         chart_data=series,
+        different_chart_data=different_series,
+        expense_category=expense_category
     )

@@ -90,4 +90,23 @@
 </script>
 
 
+<hr />
+<!--This is chart part -->
+<h2>Income vs Expense By Date (Monthly)</h2>
+<canvas id="incomeExpenseDateChart"></canvas>
+
+<script>
+  const differentChartData = {{ different_chart_data | tojson }};
+</script>
+
+
+<hr />
+<!--This is chart part -->
+<h2>Category of Expense (Monthly)</h2>
+<canvas id="categoryExpenseDateChart"></canvas>
+
+<script>
+  const expenseCategory = {{ expense_category | tojson }};
+</script>
+
 {% endblock %}
