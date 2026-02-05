@@ -7,9 +7,8 @@ from typing import Optional
 
 from flask import flash
 from ..models import Transaction
+from app.constants import MONEY_2DP
 
-
-MONEY_2DP = Decimal("0.01")
 
 
 @dataclass(frozen=True)

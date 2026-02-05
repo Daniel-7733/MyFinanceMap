@@ -14,9 +14,9 @@ from typing import Any, Iterable
 from sqlalchemy import func, case
 from ..models import Transaction, db
 from collections import defaultdict
+from app.constants import MONEY_2DP
 
 
-MONEY_2DP: Decimal = Decimal("0.01")
 
 
 def monthly_totals(last_n: int = 6) -> list[dict[str, Any]]:

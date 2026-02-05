@@ -12,6 +12,7 @@ from app.constants import MONEY_2DP
 
 
 
+
 def total_income(incomes: list[Decimal]) -> Decimal:
     """
     Calculate total income from a list of Decimal values.
