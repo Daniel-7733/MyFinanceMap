@@ -123,3 +123,33 @@ chart.resize(500, 500);
 })();
 
 
+// pie chart for 50/30/20
+(() => {
+  "use strict";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof threePartRule === "undefined") return;
+
+    const canvas = document.getElementById("threePartRule");
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: threePartRule.labels,
+        datasets: [
+          {
+            label: "50/30/20 Targets",
+            data: threePartRule.values,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        onResize: handleResize,
+      },
+    });
+  });
+})();

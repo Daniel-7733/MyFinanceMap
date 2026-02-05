@@ -138,7 +138,7 @@ def monthly_income_expense_date_series(transactions: Iterable[Transaction]) -> d
     """
     Returns chart-ready data aligned by month:
     {
-      "labels": ["2026-01", "2026-02"],
+      "labels": ["2026-01-01", "2026-02-02"],
       "income": [3000.00, 2500.00],
       "expense": [1200.00, 1800.00]
     }

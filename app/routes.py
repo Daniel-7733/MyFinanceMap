@@ -16,8 +16,8 @@ from sqlalchemy.orm import Query
 
 from .models import Transaction, db
 from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals
-from .services.budgeting import available_balance, deficit_amount, total_income, total_expense
-from .services.summary import get_finance_overview, get_balance
+from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020
+from .services.summary import get_finance_overview, get_balance, get_income_expense_net
 from .utils import get_available_months, get_current_month, split_income_expense
 
 from .services.transactions import parse_transaction_form, apply_parsed_to_model
@@ -162,6 +162,14 @@ def dashboard() -> str:
     different_series: dict[str, list] = monthly_income_expense_date_series(transactions)
     expense_category = category_expense_totals(transactions)
 
+    # This part is for 50/30/20 rule
+    income_total, expense_total, net = get_income_expense_net(transactions)
+    targets: dict[str, Decimal] = calculate_503020(income_total)  # needs/wants/savings targets
+    budgeting_rule: dict[str, list[str] | list[float]] = {
+        "labels": ["Needs (50%)", "Wants (30%)", "Savings (20%)"],
+        "values": [float(targets["needs"]), float(targets["wants"]), float(targets["savings"])],
+    }
+
     # totals
     balance: Decimal = get_balance(transactions)
     available: Decimal = available_balance(balance)
@@ -198,5 +206,6 @@ def dashboard() -> str:
         selected_label=selection.label,
         chart_data=series,
         different_chart_data=different_series,
-        expense_category=expense_category
+        expense_category=expense_category,
+        budgeting_rule=budgeting_rule,
     )
