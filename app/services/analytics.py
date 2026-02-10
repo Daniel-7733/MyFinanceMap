@@ -14,7 +14,7 @@ from typing import Any, Iterable
 from sqlalchemy import func, case
 from ..models import Transaction, db
 from collections import defaultdict
-from app.constants import MONEY_2DP
+from app.constants import MONEY_2DP, CATEGORY_BUCKETS
 
 
 
@@ -193,3 +193,23 @@ def category_expense_totals(transactions: Iterable["Transaction"]) -> dict[str, 
     totals: list[float] = [float(total.quantize(MONEY_2DP)) for _, total in items]
 
     return {"labels": labels, "totals": totals}
+
+
+def split_bucket_totals(transactions: Iterable["Transaction"]) -> dict[str, Decimal]:
+    totals = {"needs": Decimal("0"), "wants": Decimal("0"), "savings": Decimal("0")}
+
+    for t in transactions:
+        if t.txn_type != "expense":
+            continue
+
+        bucket = CATEGORY_BUCKETS.get(t.category, "wants")  # default "wants"
+        amount = t.amount_home or Decimal("0")
+
+        if bucket == "needs":
+            totals["needs"] += amount
+        elif bucket == "wants":
+            totals["wants"] += amount
+        elif bucket == "savings":
+            totals["savings"] += amount
+
+    return totals

@@ -8,7 +8,7 @@
 """
 
 from decimal import Decimal
-from app.constants import MONEY_2DP
+from app.constants import MONEY_2DP, HUNDRED
 
 
 
@@ -19,6 +19,7 @@ def total_income(incomes: list[Decimal]) -> Decimal:
     Safe even if the list is empty.
     """
     return sum(incomes, Decimal("0"))
+
 
 def total_expense(expenses: list[Decimal]) -> Decimal: # This is duplicate and I might delete it in future
     """
@@ -79,3 +80,33 @@ def calculate_503020(income: Decimal) -> dict[str, Decimal]:
     savings: Decimal = (income * Decimal("0.20")).quantize(MONEY_2DP)
 
     return {"needs": needs, "wants": wants, "savings": savings}
+
+
+def rule_503020_from_actual(income: Decimal, needs: Decimal, wants: Decimal, savings: Decimal = Decimal("0")) -> dict[str, Decimal]:
+    """
+    Compute actual percentages for needs/wants/savings.
+    If savings is not provided, it will be derived as: income - needs - wants.
+    """
+    if income <= 0:
+        return {
+            "needs_amount": needs,
+            "wants_amount": wants,
+            "savings_amount": savings,
+            "needs_percentage": Decimal("0"),
+            "wants_percentage": Decimal("0"),
+            "savings_percentage": Decimal("0"),
+        }
+
+    # If you want savings to be derived (recommended for MVP)
+    if savings == Decimal("0"):
+        savings = income - needs - wants
+
+    return {
+        "needs_amount": needs,
+        "wants_amount": wants,
+        "savings_amount": savings,
+        "needs_percentage": (needs / income) * HUNDRED,
+        "wants_percentage": (wants / income) * HUNDRED,
+        "savings_percentage": (savings / income) * HUNDRED,
+    }
+

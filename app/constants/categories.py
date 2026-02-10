@@ -1,4 +1,8 @@
-CATEGORY_BUCKETS = {
+CATEGORY_BUCKETS: dict[str, str] = {
+    # income
+    "salary": "income",
+    "tips": "income",
+
     # Needs
     "rent": "needs",
     "mortgage": "needs",
@@ -27,8 +31,6 @@ CATEGORY_BUCKETS = {
     "shopping": "wants",
     "other": "wants",
 }
-
-
 
 
 # --------------List----------------

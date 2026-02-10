@@ -116,4 +116,13 @@
 <script>
   const threePartRule = {{ budgeting_rule | tojson }};
 </script>
+
+{% for key, value in bucket_totals.items() %}
+<h1>{{ key }} -> {{ value }}</h1>
+{% endfor %}
+
+{% for key, value in rule.items() %}
+<h1>{{ key }} -> {{ value }}</h1>
+{% endfor %}
+
 {% endblock %}

@@ -15,8 +15,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from sqlalchemy.orm import Query
 
 from .models import Transaction, db
-from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals
-from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020
+from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals, split_bucket_totals
+from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020, rule_503020_from_actual
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
 from .utils import get_available_months, get_current_month, split_income_expense
 
@@ -162,13 +162,25 @@ def dashboard() -> str:
     different_series: dict[str, list] = monthly_income_expense_date_series(transactions)
     expense_category = category_expense_totals(transactions)
 
-    # This part is for 50/30/20 rule
+    # --- 50/30/20 targets (based on income) ---
     income_total, expense_total, net = get_income_expense_net(transactions)
-    targets: dict[str, Decimal] = calculate_503020(income_total)  # needs/wants/savings targets
+    targets: dict[str, Decimal] = calculate_503020(income_total)  # {"needs":..., "wants":..., "savings":...}
     budgeting_rule: dict[str, list[str] | list[float]] = {
         "labels": ["Needs (50%)", "Wants (30%)", "Savings (20%)"],
         "values": [float(targets["needs"]), float(targets["wants"]), float(targets["savings"])],
     }
+
+    # --- 50/30/20 actual spending breakdown (based on categories) ---
+    bucket_totals = split_bucket_totals(transactions)  # {"needs": Decimal, "wants": Decimal, "savings": Decimal}
+
+    rule = rule_503020_from_actual(
+        income=income_total,
+        needs=bucket_totals["needs"],
+        wants=bucket_totals["wants"],
+        savings=bucket_totals["savings"],
+    )
+
+    # --------------------------------------------------
 
     # totals
     balance: Decimal = get_balance(transactions)
@@ -207,5 +219,7 @@ def dashboard() -> str:
         chart_data=series,
         different_chart_data=different_series,
         expense_category=expense_category,
-        budgeting_rule=budgeting_rule,
-    )
+        budgeting_rule=budgeting_rule,     # for pie chart target
+        bucket_totals=bucket_totals,       # actual totals
+        rule=rule,                         # actual percentages vs target
+        )
