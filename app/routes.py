@@ -171,15 +171,40 @@ def dashboard() -> str:
     }
 
     # --- 50/30/20 actual spending breakdown (based on categories) ---
-    bucket_totals = split_bucket_totals(transactions)  # {"needs": Decimal, "wants": Decimal, "savings": Decimal}
+    bucket: dict[str, Decimal] = split_bucket_totals(transactions)
 
-    rule = rule_503020_from_actual(
-        income=income_total,
-        needs=bucket_totals["needs"],
-        wants=bucket_totals["wants"],
-        savings=bucket_totals["savings"],
+    needs_spend: Decimal = bucket.get("needs", Decimal("0"))
+    wants_spend: Decimal = bucket.get("wants", Decimal("0"))
+    savings_spend: Decimal = bucket.get("savings", Decimal("0"))
+
+    leftover: Decimal = max(
+        Decimal("0"),
+        income_total - (needs_spend + wants_spend + savings_spend)
     )
 
+    rule: dict[str, Decimal] = rule_503020_from_actual(
+        income=income_total,
+        needs=needs_spend,
+        wants=wants_spend,
+        savings=leftover,
+    )
+
+    need_p: float = float(rule["needs_percentage"])
+    want_p: float = float(rule["wants_percentage"])
+    save_p: float = float(rule["savings_percentage"])
+
+    actual_pie: dict[str, list[str] | list[float]] = {
+        "labels": [
+            f"Needs (spent) {need_p:.2f}%",
+            f"Wants (spent) {want_p:.2f}%",
+            f"Savings (left) {save_p:.2f}%",
+        ],
+        "values": [
+            float(needs_spend),
+            float(wants_spend),
+            float(leftover),
+        ],
+    }
     # --------------------------------------------------
 
     # totals
@@ -220,6 +245,6 @@ def dashboard() -> str:
         different_chart_data=different_series,
         expense_category=expense_category,
         budgeting_rule=budgeting_rule,     # for pie chart target
-        bucket_totals=bucket_totals,       # actual totals
+        actual_pie=actual_pie,             # actual totals
         rule=rule,                         # actual percentages vs target
         )

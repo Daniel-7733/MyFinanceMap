@@ -82,24 +82,33 @@ def calculate_503020(income: Decimal) -> dict[str, Decimal]:
     return {"needs": needs, "wants": wants, "savings": savings}
 
 
-def rule_503020_from_actual(income: Decimal, needs: Decimal, wants: Decimal, savings: Decimal = Decimal("0")) -> dict[str, Decimal]:
+def rule_503020_from_actual(
+    income: Decimal,
+    needs: Decimal,
+    wants: Decimal,
+    savings: Decimal | None = None,
+) -> dict[str, Decimal]:
     """
     Compute actual percentages for needs/wants/savings.
     If savings is not provided, it will be derived as: income - needs - wants.
     """
+
     if income <= 0:
         return {
             "needs_amount": needs,
             "wants_amount": wants,
-            "savings_amount": savings,
+            "savings_amount": Decimal("0") if savings is None else savings,
             "needs_percentage": Decimal("0"),
             "wants_percentage": Decimal("0"),
             "savings_percentage": Decimal("0"),
         }
 
-    # If you want savings to be derived (recommended for MVP)
-    if savings == Decimal("0"):
+    if savings is None:
         savings = income - needs - wants
+
+    # Optional safety:
+    if savings < 0:
+        savings = Decimal("0")
 
     return {
         "needs_amount": needs,
@@ -109,4 +118,5 @@ def rule_503020_from_actual(income: Decimal, needs: Decimal, wants: Decimal, sav
         "wants_percentage": (wants / income) * HUNDRED,
         "savings_percentage": (savings / income) * HUNDRED,
     }
+
 

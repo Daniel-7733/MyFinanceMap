@@ -153,3 +153,38 @@ chart.resize(500, 500);
     });
   });
 })();
+
+
+
+
+// pie chart for 50/30/20
+(() => {
+  "use strict";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof threePartRuleUser === "undefined") return;
+
+    const canvas = document.getElementById("threePartRuleUser");
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: threePartRuleUser.labels,
+        datasets: [
+          {
+            labels: threePartRuleUser.labels,
+            data: threePartRuleUser.values,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        onResize: handleResize,
+      },
+    });
+  });
+})();
+

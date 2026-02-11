@@ -196,13 +196,18 @@ def category_expense_totals(transactions: Iterable["Transaction"]) -> dict[str, 
 
 
 def split_bucket_totals(transactions: Iterable["Transaction"]) -> dict[str, Decimal]:
-    totals = {"needs": Decimal("0"), "wants": Decimal("0"), "savings": Decimal("0")}
+    totals = {
+        "needs": Decimal("0"),
+        "wants": Decimal("0"),
+        "savings": Decimal("0"),  # savings_spend (deposits/investing)
+        "unknown": Decimal("0"),  # optional: categories not in mapping
+    }
 
     for t in transactions:
         if t.txn_type != "expense":
             continue
 
-        bucket = CATEGORY_BUCKETS.get(t.category, "wants")  # default "wants"
+        bucket = CATEGORY_BUCKETS.get(t.category, "wants")
         amount = t.amount_home or Decimal("0")
 
         if bucket == "needs":
@@ -211,5 +216,8 @@ def split_bucket_totals(transactions: Iterable["Transaction"]) -> dict[str, Deci
             totals["wants"] += amount
         elif bucket == "savings":
             totals["savings"] += amount
+        else:
+            totals["unknown"] += amount  # useful while you’re still adding categories
 
     return totals
+

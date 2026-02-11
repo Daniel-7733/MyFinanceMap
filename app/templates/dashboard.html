@@ -117,12 +117,13 @@
   const threePartRule = {{ budgeting_rule | tojson }};
 </script>
 
-{% for key, value in bucket_totals.items() %}
-<h1>{{ key }} -> {{ value }}</h1>
-{% endfor %}
 
-{% for key, value in rule.items() %}
-<h1>{{ key }} -> {{ value }}</h1>
-{% endfor %}
+<hr />
+<h2>50/30/20 Rule (Actual Monthly income)</h2>
+<canvas id="threePartRuleUser"></canvas>
+
+<script>
+  const threePartRuleUser = {{ actual_pie | tojson }};
+</script>
 
 {% endblock %}
