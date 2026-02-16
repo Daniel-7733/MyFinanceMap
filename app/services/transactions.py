@@ -25,6 +25,14 @@ class ParsedTxn:
     amount_home: Decimal
 
 
+def compute_home_amount(amount: Decimal, currency: str, rate: Decimal | None, main_currency: str) -> Decimal:
+    if currency == main_currency:
+        return amount
+    if not rate:
+        raise ValueError("Rate required for foreign currency")
+    return (amount * rate).quantize(MONEY_2DP)
+
+
 def _parse_money_2dp(raw: str, field_name: str) -> Optional[Decimal]:
     raw = (raw or "").strip()
     try:
@@ -106,7 +114,8 @@ def parse_transaction_form(form, main_currency: str) -> ParsedTxn | None:
         flash(f"Exchange rate is required when currency is not {main_currency}.", "error")
         return None
 
-    amount_home = (amount * rate).quantize(MONEY_2DP) if (is_foreign and rate) else amount
+    # amount_home = (amount * rate).quantize(MONEY_2DP) if (is_foreign and rate) else amount
+    amount_home = compute_home_amount(amount, currency, rate, main_currency)
 
     return ParsedTxn(
         txn_type=txn_type,
