@@ -51,8 +51,15 @@
     <td>{{ transaction.txn_type }}</td>
     <td>
       {{ "{:,.2f}".format(transaction.amount) }} {{ transaction.currency }}
+
       {% if transaction.currency != currency %}
-        ({{ "{:,.2f}".format(transaction.amount_home) }} {{ currency }})
+        <br>
+        <small>
+          ≈ {{ "{:,.2f}".format(transaction.amount_home) }} {{ currency }}
+          {% if transaction.exchange_rate_to_home %}
+            @ {{ "{:,.6f}".format(transaction.exchange_rate_to_home) }}
+          {% endif %}
+        </small>
       {% endif %}
     </td>
     <td>{{ transaction.category }}</td>
