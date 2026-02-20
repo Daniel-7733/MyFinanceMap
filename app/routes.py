@@ -63,6 +63,7 @@ def add_transaction() -> Response | str:
             amount_home=parsed.amount_home,
             method=parsed.method,
         )
+        txn.sync_amount_home(MAIN_CURRENCY)
         db.session.add(txn)
         db.session.commit()
         return redirect(url_for("main.show_transactions"))
@@ -121,6 +122,7 @@ def edit_transaction(id: int) -> Response | str:
             return render_template("edit_transaction.html", transaction=txn, id=id)
 
         apply_parsed_to_model(txn, parsed)
+        txn.sync_amount_home(MAIN_CURRENCY)
         db.session.commit()
         flash("Transaction updated.", "success")
         return redirect(url_for("main.show_transactions"))

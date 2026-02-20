@@ -3,6 +3,7 @@ from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column
+from app.core.finance import compute_home_amount
 
 db: SQLAlchemy = SQLAlchemy()
 
@@ -34,3 +35,11 @@ class Transaction(db.Model):
         CheckConstraint("exchange_rate_to_home IS NULL OR exchange_rate_to_home > 0", name="ck_transactions_rate_positive"),
         CheckConstraint("method IN ('card', 'cash', 'bank_transfer')", name="ck_transactions_method"),
     )
+
+    def sync_amount_home(self, main_currency: str):
+        self.amount_home = compute_home_amount(
+            self.amount,
+            self.currency,
+            self.exchange_rate_to_home,
+            main_currency,
+        )

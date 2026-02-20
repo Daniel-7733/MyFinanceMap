@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Optional
-
 from flask import flash
+from ..core.finance import compute_home_amount
 from ..models import Transaction
 from app.constants import MONEY_2DP
 
@@ -24,13 +24,6 @@ class ParsedTxn:
     exchange_rate_to_home: Decimal | None
     amount_home: Decimal
 
-
-def compute_home_amount(amount: Decimal, currency: str, rate: Decimal | None, main_currency: str) -> Decimal:
-    if currency == main_currency:
-        return amount
-    if not rate:
-        raise ValueError("Rate required for foreign currency")
-    return (amount * rate).quantize(MONEY_2DP)
 
 
 def _parse_money_2dp(raw: str, field_name: str) -> Optional[Decimal]:
