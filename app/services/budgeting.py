@@ -6,9 +6,14 @@
 
                             *************************************
 """
+from __future__ import annotations
 
 from decimal import Decimal
 from app.constants import MONEY_2DP, HUNDRED
+from typing import TYPE_CHECKING, Iterable
+
+if TYPE_CHECKING:
+    from app.models import Transaction
 
 
 
@@ -120,3 +125,20 @@ def rule_503020_from_actual(
     }
 
 
+def split_income_expense(transactions: Iterable["Transaction"]) -> tuple[list[Decimal], list[Decimal]]:
+    """
+    Split transactions into two lists: (incomes, expenses).
+    :param transactions: transactions iterable
+    :return: two lists: (incomes, expenses)
+    """
+
+    incomes: list[Decimal] = []
+    expenses: list[Decimal] = []
+
+    for t in transactions:
+        if t.txn_type == "income":
+            incomes.append(t.amount_home)
+        elif t.txn_type == "expense":
+            expenses.append(t.amount_home)
+
+    return incomes, expenses

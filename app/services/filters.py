@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from typing import TYPE_CHECKING, Iterable
+
+if TYPE_CHECKING:
+    from app.models import Transaction
 
 
 @dataclass(frozen=True)
@@ -32,3 +36,23 @@ def select_month(month_str: str | None, today_key: str, month_options: dict[str,
         return MonthSelection(month_key=month_str, label=label, period_month=period_month_obj)
     except ValueError:
         return MonthSelection(month_key="all", label="All", period_month=None)
+
+
+def get_available_months(transactions: Iterable["Transaction"]) -> dict[str, str]:
+    """
+    Returns dict mapping 'YYYY-MM' -> 'MonthName YYYY'
+    Example: {'2025-11': 'November 2025'}
+    """
+    options: dict[str, str] = {}
+
+    for t in transactions:
+        pm: date = t.period_month  # use period_month (not date_paid)
+
+        key: str = pm.strftime("%Y-%m")         # '2025-11'
+        label: str = pm.strftime("%B %Y")       # 'November 2025'
+
+        options[key] = label
+
+    # Optional: sort by key (year-month)
+    return dict(sorted(options.items()))
+

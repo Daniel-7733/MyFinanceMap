@@ -16,12 +16,12 @@ from sqlalchemy.orm import Query
 
 from .models import Transaction, db
 from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals, split_bucket_totals
-from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020, rule_503020_from_actual
+from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020, rule_503020_from_actual, split_income_expense
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
-from .utils import get_available_months, get_current_month, split_income_expense
+from .core.dates import get_current_month
 
 from .services.transactions import parse_transaction_form, apply_parsed_to_model
-from .services.filters import select_month
+from .services.filters import select_month, get_available_months
 
 
 main: Blueprint = Blueprint("main", __name__)
