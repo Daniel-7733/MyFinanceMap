@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}My Finance Map{% endblock %}
+{% block content %}
+
+    <p>Sign In Page.</p>
+    <form method="POST" action="{{ url_for('main.login') }}">
+        <label for="email">Email</label>
+        <input type="text" name="email" id="email" placeholder="user@emial.com">
+
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" placeholder="Username">
+
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" placeholder="Password">
+
+        <a href="{{ url_for('main.login') }}">I have an account</a>
+    </form>
+
+{% endblock %}
