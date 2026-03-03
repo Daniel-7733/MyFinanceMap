@@ -1,9 +1,11 @@
 from datetime import date, datetime
 from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import CheckConstraint, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.finance import compute_home_amount
+from flask_login import UserMixin
+
 
 db: SQLAlchemy = SQLAlchemy()
 
@@ -36,10 +38,29 @@ class Transaction(db.Model):
         CheckConstraint("method IN ('card', 'cash', 'bank_transfer')", name="ck_transactions_method"),
     )
 
-    def sync_amount_home(self, main_currency: str):
+    def sync_amount_home(self, main_currency: str) -> None:
         self.amount_home = compute_home_amount(
             self.amount,
             self.currency,
             self.exchange_rate_to_home,
             main_currency,
         )
+
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    home_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+
+    # Relationship
+    transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
