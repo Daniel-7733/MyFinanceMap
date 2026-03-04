@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}My Finance Map{% endblock %}
+{% block content %}
+
+    <p>Form Page</p>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <label for="first_name">First Name</label>
+        <input type="text" name="first_name" id="first_name" placeholder="First Name" required>
+
+        <label for="last_name">Last Name</label>
+        <input type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+
+
+        <label for="user_currency">Add your home currency</label>
+        <select id="user_currency" name="user_currency" required>
+          <option value=" " selected disabled>Select</option>
+          <option value="USD">USD - US Dollar</option>
+          <option value="EUR">EUR - Euro</option>
+          <option value="TRY">TRY - Turkish Lira</option>
+          <option value="CAD">CAD - Canadian Dollar</option>
+          <option value="GBP">GBP - British Pound</option>
+        </select>
+
+
+        <label for="country">Add Your Country</label>
+        <select id="country" name="country" required>
+          <option value=" " selected disabled>Select</option>
+          <option value="USA">USA</option>
+          <option value="France">France</option>
+          <option value="Iran">Iran</option>
+          <option value="Turkey">Turkey</option>
+          <option value="Canada">Canada</option>
+        </select>
+
+        <label for="state">Add Your state</label>
+        <input type="text" name="state" id="state" placeholder="state" required>
+
+        <label for="city">Add Your city</label>
+        <input type="text" name="city" id="city" placeholder="city" required>
+        </select>
+
+        <small>You will see your information in the home page and you can edit anytime you want.</small>
+        <a href="{{ url_for('main.home') }}">Save</a>
+    </form>
+
+{% endblock %}
+
+<!-- <a href="{{ url_for('main.forgot_password') }}">Forgot Password?</a>-->

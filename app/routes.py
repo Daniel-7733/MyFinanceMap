@@ -251,18 +251,3 @@ def dashboard() -> str:
         actual_pie=actual_pie,             # actual totals
         rule=rule,                         # actual percentages vs target
         )
-
-
-@main.route("/sign-in", methods=["GET", "POST"])
-def sign_in():
-    return render_template("sign_in.html", show_navbar=False)
-
-
-@main.route("/login", methods=["GET", "POST"])
-def login():
-    return render_template("login.html", show_navbar=False)
-
-
-@main.route("/log-out")
-def log_out():
-    return render_template("logout.html", show_navbar=False)

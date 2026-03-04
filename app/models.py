@@ -30,10 +30,10 @@ class Transaction(db.Model):
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
 
-    # ------------------- Relationship to User ------------------ #
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    user = relationship("User", back_populates="transactions")
-    # ------------------------------------------------------------ #
+    # # ------------------- Relationship to User ------------------ #
+    # user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    # user = relationship("User", back_populates="transactions")
+    # # ------------------------------------------------------------ #
 
     __table_args__ = (
         CheckConstraint("txn_type IN ('income', 'expense')", name="ck_transactions_type"),
@@ -53,19 +53,19 @@ class Transaction(db.Model):
 
 
 
-class User(UserMixin, db.Model):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-    username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
-    email: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
-
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    home_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
-
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
-
-    # Relationship
-    transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+# class User(UserMixin, db.Model):
+#     __tablename__ = "users"
+#
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#
+#     username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
+#     email: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+#
+#     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+#
+#     home_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
+#
+#     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+#
+#     # Relationship
+#     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")

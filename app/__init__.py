@@ -43,4 +43,7 @@ def create_app() -> Flask:
     from .routes import main
     app.register_blueprint(main, url_prefix="/")
 
+    from .auth_routes import auth
+    app.register_blueprint(auth, url_prefix="/auth")
+
     return app

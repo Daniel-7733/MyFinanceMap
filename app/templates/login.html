@@ -3,14 +3,15 @@
 {% block content %}
 
     <p>Log In Page.</p>
-    <form method="POST" action="{{ url_for('main.login') }}">
+    <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="email">Email</label>
         <input type="text" name="email" id="email" placeholder="user@emial.com">
 
         <label for="password">Password</label>
         <input type="password" name="password" id="password" placeholder="Password">
 
-        <a href="{{ url_for('main.sign_in') }}">Create account</a>
+        <a href="{{ url_for('auth.sign_in') }}">Create account</a>
+        <a href="{{ url_for('main.home') }}">Log In</a>
 
     </form>
 
