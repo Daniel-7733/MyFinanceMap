@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, String, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.finance import compute_home_amount
 from flask_login import UserMixin
@@ -29,6 +29,11 @@ class Transaction(db.Model):
     method: Mapped[str] = mapped_column(String(20), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+
+    # ------------------- Relationship to User ------------------ #
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="transactions")
+    # ------------------------------------------------------------ #
 
     __table_args__ = (
         CheckConstraint("txn_type IN ('income', 'expense')", name="ck_transactions_type"),
