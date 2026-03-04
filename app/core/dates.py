@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 
 def month_start(d: date) -> date:
@@ -19,3 +19,12 @@ def get_current_month() -> tuple[str, str]:
     key: str = today.strftime("%Y-%m")      # "2026-01"
     label: str = today.strftime("%B %Y")    # "January 2026"
     return key, label
+
+
+def get_full_current_date() -> str:
+    """
+    :return: MM-DD, YYYY HH:MM:SS (December 27, 2022 10:09:20)
+    """
+
+    now: datetime = datetime.now()
+    return now.strftime("%B %d, %Y %H:%M:%S")

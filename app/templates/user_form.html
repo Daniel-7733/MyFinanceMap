@@ -2,14 +2,13 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-    <p>Form Page</p>
-    <form method="POST" action="{{ url_for('auth.login') }}">
-        <label for="first_name">First Name</label>
-        <input type="text" name="first_name" id="first_name" placeholder="First Name" required>
+<p xmlns="http://www.w3.org/1999/html">Form Page</p>
+    <form method="POST" action="{{ url_for('auth.user_form') }}">
 
-        <label for="last_name">Last Name</label>
-        <input type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+        <label for="timezone">Timezone: {{ today }}</label> <br>
 
+        <label for="full_name">Full Name</label>
+        <input type="text" name="full_name" id="full_name" placeholder="full name" required> <br>
 
         <label for="user_currency">Add your home currency</label>
         <select id="user_currency" name="user_currency" required>
@@ -19,7 +18,7 @@
           <option value="TRY">TRY - Turkish Lira</option>
           <option value="CAD">CAD - Canadian Dollar</option>
           <option value="GBP">GBP - British Pound</option>
-        </select>
+        </select> <br>
 
 
         <label for="country">Add Your Country</label>
@@ -30,19 +29,17 @@
           <option value="Iran">Iran</option>
           <option value="Turkey">Turkey</option>
           <option value="Canada">Canada</option>
-        </select>
+        </select> <br>
 
         <label for="state">Add Your state</label>
-        <input type="text" name="state" id="state" placeholder="state" required>
+        <input type="text" name="state" id="state" placeholder="state" required> <br>
 
         <label for="city">Add Your city</label>
-        <input type="text" name="city" id="city" placeholder="city" required>
-        </select>
+        <input type="text" name="city" id="city" placeholder="city" required> <br>
 
-        <small>You will see your information in the home page and you can edit anytime you want.</small>
-        <a href="{{ url_for('main.home') }}">Save</a>
+        <small>You will see your information in the home page, and you can edit anytime you want.</small>
+        <br>
+        <button type="submit">Save</button> <br> <!-- This btn should go to {{ url_for('main.home') }}-->
     </form>
 
 {% endblock %}
-
-<!-- <a href="{{ url_for('main.forgot_password') }}">Forgot Password?</a>-->
