@@ -38,7 +38,7 @@ from flask_login import current_user
 
 @main.route("/whoami")
 def whoami() -> str:
-    """For Debug"""
+    """For Debug purposes"""
     return f"authenticated={current_user.is_authenticated}, id={getattr(current_user,'id',None)}"
 
 @main.context_processor
@@ -79,6 +79,7 @@ def add_transaction() -> Response | str:
             exchange_rate_to_home=parsed.exchange_rate_to_home,
             amount_home=parsed.amount_home,
             method=parsed.method,
+            user_id=current_user.id,
         )
         txn.sync_amount_home(MAIN_CURRENCY)
         db.session.add(txn)
