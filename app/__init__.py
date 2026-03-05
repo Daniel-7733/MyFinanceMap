@@ -14,9 +14,17 @@ from __future__ import annotations
 
 from os import getenv, makedirs
 from pathlib import Path
+
 from flask import Flask
+from flask_login import LoginManager
+from flask_migrate import Migrate
+
 from config import DevConfig, ProdConfig
-from .models import db
+from .models import db, User
+
+
+migrate = Migrate()
+login_manager = LoginManager()
 
 
 def create_app() -> Flask:
@@ -36,7 +44,18 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path.as_posix()}"
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
+    # ✅ Flask-Login init
+    login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
+    login_manager.login_message_category = "error"
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        return db.session.get(User, int(user_id))
+
+    # ❗ If you're using migrations, DO NOT keep create_all long-term
     with app.app_context():
         db.create_all()
 
@@ -45,5 +64,10 @@ def create_app() -> Flask:
 
     from .auth_routes import auth
     app.register_blueprint(auth, url_prefix="/auth")
+
+    # ------ For debug ------ #
+    # print("SECRET_KEY loaded:", bool(app.config.get("SECRET_KEY")))
+    # print("SECRET_KEY preview:", str(app.config.get("SECRET_KEY"))[:8])
+    # ------ For debug ------ #
 
     return app

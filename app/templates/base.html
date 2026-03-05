@@ -57,6 +57,15 @@
       {% block content %}{% endblock %}
     </main>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+          <ul>
+            {% for category, message in messages %}
+              <li>{{ category }}: {{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
 
     <footer>
       <p>

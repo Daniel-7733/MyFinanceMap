@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 
 def month_start(d: date) -> date:
@@ -28,3 +29,7 @@ def get_full_current_date() -> str:
 
     now: datetime = datetime.now()
     return now.strftime("%B %d, %Y %H:%M:%S")
+
+def get_local_time(user_timezone: str) -> str:
+    now = datetime.now(ZoneInfo(user_timezone))
+    return now.strftime("%A, %B %d, %Y %H:%M")

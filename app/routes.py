@@ -12,7 +12,11 @@ from __future__ import annotations
 from typing import Any
 from datetime import datetime
 from decimal import Decimal
+
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
+from flask_login import login_required
+from flask_login import current_user
+
 from sqlalchemy.orm import Query
 
 from .models import Transaction, db
@@ -25,16 +29,27 @@ from .services.transactions import parse_transaction_form, apply_parsed_to_model
 from .services.filters import select_month, get_available_months
 
 
+
 main: Blueprint = Blueprint("main", __name__)
 MAIN_CURRENCY: str = "USD"  # TODO later: user settings / config
 
 
+from flask_login import current_user
+
+@main.route("/whoami")
+def whoami() -> str:
+    """For Debug"""
+    return f"authenticated={current_user.is_authenticated}, id={getattr(current_user,'id',None)}"
+
 @main.context_processor
 def inject_current_year() -> dict[str, int]:
+    if current_user.is_authenticated:
+        return {"MAIN_CURRENCY": current_user.home_currency}
     return {"current_year": datetime.now().year}
 
 
 @main.route("/")
+@login_required
 def home() -> str:
     _, _, available, deficit = get_finance_overview()
     return render_template(
@@ -46,6 +61,7 @@ def home() -> str:
 
 
 @main.route("/transactions-add", methods=["GET", "POST"])
+@login_required
 def add_transaction() -> Response | str:
     if request.method == "POST":
         parsed = parse_transaction_form(request.form, MAIN_CURRENCY)
@@ -73,6 +89,7 @@ def add_transaction() -> Response | str:
 
 
 @main.route("/transactions", methods=["GET"])
+@login_required
 def show_transactions() -> str:
     month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
 
@@ -114,6 +131,7 @@ def show_transactions() -> str:
 
 
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
+@login_required
 def edit_transaction(id: int) -> Response | str:
     txn: Transaction = Transaction.query.get_or_404(id)
 
@@ -132,6 +150,7 @@ def edit_transaction(id: int) -> Response | str:
 
 
 @main.route("/transactions-delete/<int:id>", methods=["GET", "POST"])
+@login_required
 def delete_transaction(id: int) -> Response | str:
     txn: Transaction = Transaction.query.get_or_404(id)
 
@@ -145,6 +164,7 @@ def delete_transaction(id: int) -> Response | str:
 
 
 @main.route("/dashboard", methods=["GET"])
+@login_required
 def dashboard() -> str:
     # dropdown options
     all_transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
