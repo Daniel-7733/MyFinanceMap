@@ -14,8 +14,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
-from flask_login import login_required
-from flask_login import current_user
+from flask_login import login_required, current_user
 
 from sqlalchemy.orm import Query
 
@@ -31,18 +30,21 @@ from .services.filters import select_month, get_available_months
 
 
 main: Blueprint = Blueprint("main", __name__)
-MAIN_CURRENCY: str = "USD"  # TODO later: user settings / config
 
 
-from flask_login import current_user
 
 @main.route("/whoami")
 def whoami() -> str:
     """For Debug purposes"""
     return f"authenticated={current_user.is_authenticated}, id={getattr(current_user,'id',None)}"
 
+
 @main.context_processor
 def inject_current_year() -> dict[str, int]:
+    """
+    All HTMLs page except the login/out & sign in will have copyright date and user main currency (home_currency)
+    :return: Current user's currency (home_currency) & Current date
+    """
     if current_user.is_authenticated:
         return {"MAIN_CURRENCY": current_user.home_currency}
     return {"current_year": datetime.now().year}
@@ -56,7 +58,7 @@ def home() -> str:
         "index.html",
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
-        currency=MAIN_CURRENCY,
+        currency=current_user.home_currency,
     )
 
 
@@ -64,7 +66,7 @@ def home() -> str:
 @login_required
 def add_transaction() -> Response | str:
     if request.method == "POST":
-        parsed = parse_transaction_form(request.form, MAIN_CURRENCY)
+        parsed = parse_transaction_form(request.form, current_user.home_currency)
         if parsed is None:
             return render_template("add_transaction.html")
 
@@ -81,7 +83,7 @@ def add_transaction() -> Response | str:
             method=parsed.method,
             user_id=current_user.id,
         )
-        txn.sync_amount_home(MAIN_CURRENCY)
+        txn.sync_amount_home(current_user.home_currency)
         db.session.add(txn)
         db.session.commit()
         return redirect(url_for("main.show_transactions"))
@@ -122,7 +124,7 @@ def show_transactions() -> str:
         expense=f"{expense:,.2f}",
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
-        currency=MAIN_CURRENCY,
+        currency=current_user.home_currency,
         month_options=month_options,
         today_key=today_key,
         today_label=today_label,
@@ -137,12 +139,12 @@ def edit_transaction(id: int) -> Response | str:
     txn: Transaction = Transaction.query.get_or_404(id)
 
     if request.method == "POST":
-        parsed = parse_transaction_form(request.form, MAIN_CURRENCY)
+        parsed = parse_transaction_form(request.form, current_user.home_currency)
         if parsed is None:
             return render_template("edit_transaction.html", transaction=txn, id=id)
 
         apply_parsed_to_model(txn, parsed)
-        txn.sync_amount_home(MAIN_CURRENCY)
+        txn.sync_amount_home(current_user.home_currency)
         db.session.commit()
         flash("Transaction updated.", "success")
         return redirect(url_for("main.show_transactions"))
@@ -256,7 +258,7 @@ def dashboard() -> str:
         balance=f"{balance:,.2f}",
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
-        currency=MAIN_CURRENCY,
+        currency=current_user.home_currency,
         month_data=month_data,
         category_data=category_data,
         last_n=last_n,

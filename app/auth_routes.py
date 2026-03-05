@@ -54,22 +54,6 @@ def sign_in():
 
     return render_template("sign_in.html", show_navbar=False, timezone=get_full_current_date())
 
-# @auth.route("/login", methods=["GET", "POST"])
-# def login():
-#     if request.method == "POST":
-#         email = (request.form.get("email") or "").strip().lower()
-#         password = request.form.get("password") or ""
-#
-#         user = User.query.filter_by(email=email).first()
-#
-#         if user and verify_password(password, user.password_hash):
-#             login_user(user)  # optionally: login_user(user, remember=True)
-#             return redirect(url_for("main.home"))
-#
-#         flash("Invalid email or password", "error")
-#
-#     return render_template("login.html", show_navbar=False)
-
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
