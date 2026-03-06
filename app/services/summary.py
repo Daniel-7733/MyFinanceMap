@@ -1,9 +1,9 @@
 from decimal import Decimal
 from .budgeting import calculate_balance, split_income_expense
-# from ..utils import split_income_expense
 from ..models import Transaction
 from .budgeting import available_balance, deficit_amount
 from typing import Iterable
+from .transactions import current_user_transactions_query
 
 
 def get_balance(transactions) -> Decimal:
@@ -30,7 +30,10 @@ def get_finance_overview() -> tuple[list[Transaction], Decimal, Decimal, Decimal
       - deficit_amount
     """
 
-    transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    # transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    transactions: list[Transaction] = (
+        current_user_transactions_query().order_by(Transaction.id.desc()).all()
+    )
     balance: Decimal = get_balance(transactions)
     available: Decimal = available_balance(balance)
     deficit: Decimal = deficit_amount(balance)

@@ -8,7 +8,8 @@ from flask import flash
 from ..core.finance import compute_home_amount
 from ..models import Transaction
 from app.constants import MONEY_2DP
-
+from flask_login import current_user
+from sqlalchemy.orm import Query
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,24 @@ class ParsedTxn:
     exchange_rate_to_home: Decimal | None
     amount_home: Decimal
 
+
+
+def current_user_transactions_query() -> Query:
+    """
+    Base query for all transactions belonging to the logged-in user.
+    """
+    return Transaction.query.filter_by(user_id=current_user.id)
+
+
+def get_user_transactions():
+    """
+    Returns all transactions for the current user ordered by newest first.
+    """
+    return (
+        current_user_transactions_query()
+        .order_by(Transaction.id.desc())
+        .all()
+    )
 
 
 def _parse_money_2dp(raw: str, field_name: str) -> Optional[Decimal]:
