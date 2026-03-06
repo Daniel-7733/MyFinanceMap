@@ -1,9 +1,7 @@
-// static/js/forms.js
 (() => {
   "use strict";
 
-  // Keep this in one place. Later you can inject it from the backend if needed.
-  const MAIN_CURRENCY = "USD";
+  const MAIN_CURRENCY = window.MAIN_CURRENCY;
 
   function pad2(n) {
     return String(n).padStart(2, "0");
@@ -19,31 +17,47 @@
   }
 
   // -------- Currency -> exchange rate visibility --------
-  function initExchangeRateToggle() {
-    const currencySelect = document.getElementById("currency_code");
-    const rateBlock = document.getElementById("rate_block");
-    const rateInput = document.getElementById("exchange_rate");
+    function initExchangeRateToggle() {
+      const currencySelect = document.getElementById("currency_code");
 
-    // If this page doesn't have these inputs, do nothing.
-    if (!currencySelect || !rateBlock || !rateInput) return;
-
-    function updateRateVisibility() {
-      const selected = (currencySelect.value || "").toUpperCase();
-
-      if (selected && selected !== MAIN_CURRENCY) {
-        rateBlock.style.display = "block";
-        rateInput.required = true;
-      } else {
-        rateBlock.style.display = "none";
-        rateInput.required = false;
-        // Only clear if user is not using foreign currency
-        rateInput.value = "";
+      if (currencySelect && window.MAIN_CURRENCY) {
+          currencySelect.value = window.MAIN_CURRENCY;
       }
-    }
 
-    currencySelect.addEventListener("change", updateRateVisibility);
-    updateRateVisibility(); // run once on load
-  }
+      const rateBlock = document.getElementById("rate_block");
+      const rateInput = document.getElementById("exchange_rate");
+      const rateHelp = document.getElementById("rate_help");
+
+      // If this page doesn't have these inputs, do nothing.
+      if (!currencySelect || !rateBlock || !rateInput) return;
+
+      function updateRateVisibility() {
+        const selected = (currencySelect.value || "").toUpperCase();
+
+        if (selected && selected !== MAIN_CURRENCY) {
+          rateBlock.style.display = "block";
+          rateInput.required = true;
+
+          if (rateHelp) {
+            rateHelp.textContent =
+              `Example: 1 ${selected} = 1.0847 ${MAIN_CURRENCY} → rate = 1.0847`;
+          }
+
+        } else {
+          rateBlock.style.display = "none";
+          rateInput.required = false;
+          rateInput.value = "";
+
+          if (rateHelp) {
+            rateHelp.textContent =
+              "Only required when using a different currency.";
+          }
+        }
+      }
+
+      currencySelect.addEventListener("change", updateRateVisibility);
+      updateRateVisibility(); // run once on load
+    }
 
   // -------- Date defaults (only if empty) --------
   function initDateDefaults() {

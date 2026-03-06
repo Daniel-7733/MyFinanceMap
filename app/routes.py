@@ -40,14 +40,22 @@ def whoami() -> str:
 
 
 @main.context_processor
-def inject_current_year() -> dict[str, int]:
+def inject_globals() -> dict[str, int | str]:
     """
-    All HTMLs page except the login/out & sign in will have copyright date and user main currency (home_currency)
-    :return: Current user's currency (home_currency) & Current date
+    Inject common template variables:
+    - current_year
+    - user's main currency
     """
+    data = {
+        "current_year": datetime.now().year,
+    }
+
     if current_user.is_authenticated:
-        return {"MAIN_CURRENCY": current_user.home_currency}
-    return {"current_year": datetime.now().year}
+        data["MAIN_CURRENCY"] = current_user.home_currency
+    else:
+        data["MAIN_CURRENCY"] = "USD"
+
+    return data
 
 
 @main.route("/")
@@ -88,7 +96,7 @@ def add_transaction() -> Response | str:
         db.session.commit()
         return redirect(url_for("main.show_transactions"))
 
-    return render_template("add_transaction.html")
+    return render_template("add_transaction.html", user_currency=current_user.home_currency)
 
 
 @main.route("/transactions", methods=["GET"])
