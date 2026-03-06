@@ -24,7 +24,8 @@ from .services.budgeting import available_balance, deficit_amount, total_income,
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
 from .core.dates import get_current_month
 
-from .services.transactions import parse_transaction_form, apply_parsed_to_model
+from .services.transactions import parse_transaction_form, apply_parsed_to_model, get_user_transactions, \
+    current_user_transactions_query
 from .services.filters import select_month, get_available_months
 
 
@@ -105,13 +106,14 @@ def show_transactions() -> str:
     month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
 
     # dropdown options need all months
-    all_transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    # all_transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    all_transactions: list[Transaction] = get_user_transactions()
     month_options: dict[str, str] = get_available_months(all_transactions)
     today_key, today_label = get_current_month()
 
     selection = select_month(month_str, today_key, month_options)
 
-    query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
+    query: Query[Transaction] = current_user_transactions_query().order_by(Transaction.id.desc())
     if selection.period_month:
         query = query.filter(Transaction.period_month == selection.period_month)
 
@@ -178,7 +180,7 @@ def delete_transaction(id: int) -> Response | str:
 @login_required
 def dashboard() -> str:
     # dropdown options
-    all_transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
+    all_transactions: list[Transaction] =  get_user_transactions()
     month_options: dict[str, str] = get_available_months(all_transactions)
     today_key, today_label = get_current_month()
 
@@ -186,7 +188,7 @@ def dashboard() -> str:
     month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
     selection = select_month(month_str, today_key, month_options)
 
-    query: Query[Transaction] = Transaction.query.order_by(Transaction.id.desc())
+    query: Query[Transaction] = current_user_transactions_query().order_by(Transaction.id.desc())
     if selection.period_month:
         query = query.filter(Transaction.period_month == selection.period_month)
 
