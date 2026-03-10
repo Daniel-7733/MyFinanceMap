@@ -260,7 +260,7 @@ def dashboard() -> str:
     except ValueError:
         last_n = 6
 
-    month_data: list[dict[str, Any]] = monthly_totals(last_n=last_n)
+    month_data: list[dict[str, Any]] = monthly_totals(user_id=current_user.id, last_n=last_n)
 
     return render_template(
         "dashboard.html",
