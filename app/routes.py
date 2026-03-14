@@ -146,7 +146,10 @@ def show_transactions() -> str:
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_transaction(id: int) -> Response | str:
-    txn: Transaction = Transaction.query.get_or_404(id)
+    txn: Transaction = Transaction.query.filter_by(
+        id=id,
+        user_id=current_user.id
+    ).first_or_404()
 
     if request.method == "POST":
         parsed = parse_transaction_form(request.form, current_user.home_currency)
@@ -165,7 +168,10 @@ def edit_transaction(id: int) -> Response | str:
 @main.route("/transactions-delete/<int:id>", methods=["GET", "POST"])
 @login_required
 def delete_transaction(id: int) -> Response | str:
-    txn: Transaction = Transaction.query.get_or_404(id)
+    txn: Transaction = Transaction.query.filter_by(
+        id=id,
+        user_id=current_user.id
+    ).first_or_404()
 
     if request.method == "POST":
         db.session.delete(txn)
