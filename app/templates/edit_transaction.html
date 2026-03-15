@@ -6,9 +6,9 @@
     <h1>ID = {{ transaction }}</h1>
 
 <section>
-  <div>
+  <div class="my-box">
     <form method="POST" action="{{ url_for('main.edit_transaction', id=id) }}">
-      <h1>Add Transaction</h1>
+      <h1 class="title-cls" id="title-id">Add Transaction</h1>
 
       <!-- Amount + Currency -->
       <div class="amount_cls">
@@ -22,6 +22,8 @@
           min="0"
           required
         />
+
+        <br>
 
         <label for="currency_code">Currency</label>
         <select id="currency_code" name="currency_code" required>

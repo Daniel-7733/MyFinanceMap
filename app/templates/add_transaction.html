@@ -3,9 +3,9 @@
 {% block content %}
 
 <section>
-  <div>
+  <div class="my-box">
     <form method="POST" action="{{ url_for('main.add_transaction') }}">
-      <h1>Add Transaction</h1>
+      <h1 class="title-cls" id="title-id">Add Transaction</h1>
 
       <!-- Amount + Currency -->
       <div class="amount_cls">
@@ -20,6 +20,7 @@
           required
         />
 
+        <br>
         <label for="currency_code">Currency</label>
         <select id="currency_code" name="currency_code" required>
           <!-- MAIN currency is default (change USD to whatever your main currency is) -->
