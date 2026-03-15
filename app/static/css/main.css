@@ -1,9 +1,18 @@
+/*Global Set up*/
+
 * {
     /* font-family:'Courier New', Courier, monospace;*/
     font-family: 'Roboto', sans-serif;
     background-color: rgb(243, 243, 243);
 }
 
+a {
+    padding: 3px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/*Nav Bar Set up*/
 .navbar ul {
     list-style-type: none;
     background-color: #6e6666;
@@ -30,6 +39,121 @@
 }
 
 
+
+/*Footer Set up*/
 footer {
     font-size: 10px;
 }
+
+
+/*Transaction.html page Set up*/
+
+.title-cls {
+    font-size: 40px;
+    text-align: center;
+    padding-top: 50px;
+    padding-right: 30px;
+    padding-bottom: 50px;
+    padding-left: 80px;
+}
+
+.top-div-cls {
+    font-size: 15px;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+}
+
+.btn-lable-cls {
+    font-size: 15px;
+    text-align: left;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+}
+
+
+#month_select {
+    padding: 3px;
+    margin: 10px;
+    margin-left: 1px;
+}
+
+
+#clear-link-id {
+    color: red;
+    padding: 3px;
+    margin: 3px;
+    font-weight: bold;
+}
+
+#clear-link-id:hover {
+    background-color: #ed323b;
+    color: black;
+}
+
+.title-table-cls {
+    font-size: 15px;
+    text-align: center;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+}
+
+/*Table set up*/
+table, th, td {
+    border: 1px solid black; /* Sets a 1px solid black border for all table components */
+    margin: 10px;
+}
+
+/* Collapse the borders into a single border for a cleaner look */
+table {
+    border-collapse: collapse;
+    width: 50%; /* Makes the table span the full width of its container */
+}
+
+/* Add padding to cells for better readability and spacing */
+th, td {
+    padding: 10px;
+    text-align: left; /* Aligns text to the left within cells */
+}
+
+
+
+#edit-table-btn-id {
+    background-color: lightblue;
+}
+
+
+.edit-table-link-cls {
+    background-color: lightblue;
+    color: black;
+    padding: 5px;
+}
+
+.edit-table-link-cls:hover {
+    background-color: #2595f7;
+}
+
+
+#delete-table-btn-id {
+    background-color: #ed5173;
+}
+
+
+.delete-table-link-cls {
+    background-color: #ed5173;
+    color: black;
+    padding: 5px;
+}
+
+.delete-table-link-cls:hover {
+    background-color: #f20f1b;
+}
+
+
+
+/**/

@@ -2,16 +2,19 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-<h1>Your Transactions page</h1>
+<h1 class="title-cls" id="title-id">Your Transactions page</h1>
 
-<h2>Income ({{ selected_label }}): {{ income }} {{ currency }}</h2>
-<h2>Expenses ({{ selected_label }}): {{ expense }} {{ currency }}</h2>
-<h2>Available: {{ available }} {{ currency }}</h2>
-<h2>Deficit: {{ deficit }} {{ currency }}</h2>
+<div class="top-div-cls" id="top-div-id">
+  <h2 class="income-cls" id="income-id">Income ({{ selected_label }}): {{ income }} {{ currency }}</h2>
+  <h2 class="expenses-cls" id="expenses-id">Expenses ({{ selected_label }}): {{ expense }} {{ currency }}</h2>
+  <h2 class="available-cls" id="available-id">Available: {{ available }} {{ currency }}</h2>
+  <h2 class="deficit-cls" id="deficit-id">Deficit: {{ deficit }} {{ currency }}</h2>
+</div>
+
 
 
 <form method="GET" action="{{ url_for('main.show_transactions') }}">
-  <label for="month_select">Filter by month</label>
+  <label for="month_select" class="btn-lable-cls" id="btn-lable-id">Filter by month</label>
 
   <select id="month_select" name="month" onchange="this.form.submit()">
     <option value="all" {% if selected_month == "all" %}selected{% endif %}>Show All</option>
@@ -24,12 +27,12 @@
   </select>
 
   <noscript><button type="submit">Filter</button></noscript>
-  <a href="{{ url_for('main.show_transactions', month='all') }}">Clear</a>
+  <a href="{{ url_for('main.show_transactions', month='all') }}" id="clear-link-id">Clear</a>
 </form>
 
 
-<b>Your Transactions Table:</b>
-<button type="submit">Download</button> <!-- Download the table as execl, csv or etc -->
+<b class="title-table-cls" id="title-table-id">Your Transactions Table:</b>
+<button class="download-btn-cls" id="download-btn-id" type="submit">Download</button> <!-- Download the table as execl, csv or etc -->
 <!-- Transactions Table -->
 <table class="transactions-cls">
   <!-- Header -->
@@ -65,8 +68,12 @@
     <td>{{ transaction.category }}</td>
     <td>{{ transaction.date_paid }}</td>
     <td>{{ transaction.period_month }}</td>
-    <td><a href="{{ url_for('main.edit_transaction', id=transaction.id) }}">Edit</a></td>
-    <td><a href="{{ url_for('main.delete_transaction', id=transaction.id) }}">Delete</a></td>
+    <td class="edit-table-btn-cls" id="edit-table-btn-id">
+      <a class="edit-table-link-cls" id="edit-table-link-id" href="{{ url_for('main.edit_transaction', id=transaction.id) }}">Edit</a>
+    </td>
+    <td class="delete-table-btn-cls" id="delete-table-btn-id">
+      <a class="delete-table-link-cls" id="delete-table-link-id" href="{{ url_for('main.delete_transaction', id=transaction.id) }}">Delete</a>
+    </td>
   </tr>
   {% endfor %}
 </table>
