@@ -1,168 +1,457 @@
-/*Global Set up*/
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --text: #172033;
+  --muted: #667085;
+  --line: #dbe3ef;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #0f766e;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --warning: #d97706;
+  --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --radius: 18px;
+}
 
 * {
-    /* font-family:'Courier New', Courier, monospace;*/
-    font-family: 'Roboto', sans-serif;
-    background-color: rgb(243, 243, 243);
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+  color: var(--text);
+  background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
+  line-height: 1.5;
 }
 
 a {
-    padding: 3px;
-    text-decoration: none;
-    font-weight: bold;
+  color: var(--primary);
+  text-decoration: none;
+  transition: 0.2s ease;
 }
 
-/*Nav Bar Set up*/
+a:hover {
+  color: var(--primary-hover);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+/* ---------- Layout ---------- */
+main,
+.page-shell,
+section {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+section {
+  padding: 24px 0 40px;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+  width: min(1100px, calc(100% - 32px));
+  margin: 20px auto 0;
+}
+
 .navbar ul {
-    list-style-type: none;
-    background-color: #6e6666;
-    padding: 0px; /* This one change the size of the nav bar from top to bottom */
-    margin: 0px;
-    overflow: hidden; /* clear floats and write the items horizontally not vertically */
-    border-radius: 8px; /* rounded corners */
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(219, 227, 239, 0.95);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
 }
 
 .navbar ul li {
-    float: left;
+  float: none;
 }
 
 .navbar ul li a {
-    display: block;
-    padding: 14px 16px;
-    color: rgb(5, 5, 5);
-    text-align: center;
-    text-decoration: none; /* remove underline */
+  display: block;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--text);
+  font-weight: 600;
 }
 
-.navbar ul li a:hover {
-    background-color: #575757;
+.navbar ul li a:hover,
+.navbar ul li a:focus-visible {
+  background: #e7efff;
+  color: var(--primary);
 }
 
+/* ---------- Typography ---------- */
+.title-cls,
+h1 {
+  margin: 0 0 18px;
+  font-size: clamp(1.9rem, 2.8vw, 2.5rem);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
 
+h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
 
-/*Footer Set up*/
+p {
+  margin: 0 0 14px;
+}
+
+small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* ---------- Footer ---------- */
 footer {
-    font-size: 10px;
+  width: min(1100px, calc(100% - 32px));
+  margin: 20px auto 28px;
+  padding: 14px 2px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
-.title-cls {
-    font-size: 40px;
-    text-align: center;
-    padding-top: 50px;
-    padding-right: 30px;
-    padding-bottom: 50px;
-    padding-left: 80px;
+/* ---------- Shared cards / boxes ---------- */
+.my-box {
+  width: min(760px, 100%);
+  min-height: auto;
+  margin: 20px auto 48px;
+  padding: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
-/*Transaction.html page Set up*/
+/* ---------- Forms ---------- */
+form {
+  display: grid;
+  gap: 18px;
+}
 
+.amount_cls,
+.type_cls,
+.category_cls,
+.note_cls,
+.dates_cls,
+.method_cls,
+.multi_currency_cls {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+label {
+  font-weight: 700;
+  color: var(--text);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid #c9d4e5;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #98a2b3;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.submit_cls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+button,
+.submit_cls a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button[type="submit"] {
+  background: var(--primary);
+  color: #fff;
+}
+
+button[type="submit"]:hover {
+  background: var(--primary-hover);
+}
+
+.submit_cls a {
+  background: #eef2f7;
+  color: var(--text);
+}
+
+.submit_cls a:hover {
+  background: #dde6f2;
+}
+
+/* ---------- Transactions page ---------- */
 .top-div-cls {
-    font-size: 15px;
-    padding-top: 10px;
-    padding-right: 10px;
-    padding-bottom: 10px;
-    padding-left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0 18px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
-.btn-lable-cls {
-    font-size: 15px;
-    text-align: left;
-    padding-top: 5px;
-    padding-right: 5px;
-    padding-bottom: 5px;
-    padding-left: 5px;
+.btn-lable-cls,
+.title-table-cls {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0;
 }
-
 
 #month_select {
-    padding: 3px;
-    margin: 10px;
-    margin-left: 1px;
+  width: auto;
+  min-width: 180px;
+  margin: 0;
 }
 
-
 #clear-link-id {
-    color: red;
-    padding: 3px;
-    margin: 3px;
-    font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: var(--danger);
+  font-weight: 700;
 }
 
 #clear-link-id:hover {
-    background-color: #ed323b;
-    color: black;
+  background: #ffe2e5;
+  color: var(--danger-hover);
 }
 
-.title-table-cls {
-    font-size: 15px;
-    text-align: center;
-    padding-top: 5px;
-    padding-right: 5px;
-    padding-bottom: 5px;
-    padding-left: 5px;
+/* ---------- Table ---------- */
+.table-wrap,
+.transactions-cls {
+  width: 100%;
 }
 
-/*Table set up*/
-table, th, td {
-    border: 1px solid black; /* Sets a 1px solid black border for all table components */
-    margin: 10px;
-}
-
-/* Collapse the borders into a single border for a cleaner look */
 table {
-    border-collapse: collapse;
-    width: 50%; /* Makes the table span the full width of its container */
+  width: 100%;
+  margin: 18px 0;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
-/* Add padding to cells for better readability and spacing */
-th, td {
-    padding: 10px;
-    text-align: left; /* Aligns text to the left within cells */
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: top;
 }
 
-
-
-#edit-table-btn-id {
-    background-color: lightblue;
+th {
+  background: #eef4ff;
+  color: #24324a;
+  font-size: 0.96rem;
+  font-weight: 800;
 }
 
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tr:hover td {
+  background: #fafcff;
+}
+
+.edit-table-link-cls,
+.delete-table-link-cls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
 
 .edit-table-link-cls {
-    background-color: lightblue;
-    color: black;
-    padding: 5px;
+  background: #e0f2fe;
+  color: #0c4a6e;
 }
 
 .edit-table-link-cls:hover {
-    background-color: #2595f7;
+  background: #bae6fd;
 }
-
-
-#delete-table-btn-id {
-    background-color: #ed5173;
-}
-
 
 .delete-table-link-cls {
-    background-color: #ed5173;
-    color: black;
-    padding: 5px;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .delete-table-link-cls:hover {
-    background-color: #f20f1b;
+  background: #fecaca;
 }
 
+/* ---------- Utility text ---------- */
+.page-lead,
+.muted {
+  color: var(--muted);
+}
 
+.alert,
+.flash-message {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+}
 
-/*add_transaction.html Page*/
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .my-box {
+    padding: 22px;
+  }
 
-/* make a box*/
-.my-box {
-    width: 600px; /* Sets the width of the content area */
-    height: 800px; /* Sets the height of the content area */
-    background-color: lightgray; /* Gives the box a background color */
-    border: 2px solid black; /* Adds a border */
-    padding: 20px; /* Adds space between content and border */
-    margin: 10px; /* Adds space outside the border, between this box and others */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  table {
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  tr {
+    margin-bottom: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  td {
+    border-bottom: 1px solid var(--line);
+    padding: 12px 14px 12px 46%;
+    position: relative;
+    min-height: 48px;
+  }
+
+  td:last-child {
+    border-bottom: 0;
+  }
+
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    width: 38%;
+    color: var(--muted);
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    background: var(--bg);
+  }
+
+  .navbar,
+  main,
+  .page-shell,
+  section,
+  footer {
+    width: min(100% - 20px, 100%);
+  }
+
+  .my-box {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .submit_cls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button,
+  .submit_cls a,
+  #clear-link-id {
+    width: 100%;
+  }
 }

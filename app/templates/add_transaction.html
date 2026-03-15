@@ -9,7 +9,7 @@
 
       <!-- Amount + Currency -->
       <div class="amount_cls">
-        <label for="amount">Amount</label>
+        <label class="amount-label" for="amount">Amount</label>
         <input
           type="number"
           id="amount"
@@ -21,9 +21,8 @@
         />
 
         <br>
-        <label for="currency_code">Currency</label>
+        <label class="currency_code-label" for="currency_code">Currency</label>
         <select id="currency_code" name="currency_code" required>
-          <!-- MAIN currency is default (change USD to whatever your main currency is) -->
           <option value="USD">USD - US Dollar</option>
           <option value="EUR">EUR - Euro</option>
           <option value="TRY">TRY - Turkish Lira</option>
@@ -110,6 +109,8 @@
         <label for="date_paid">Date Paid (optional)</label>
         <input type="date" id="date_paid" name="date_paid" />
         <small>If empty, the app can default to today.</small>
+
+        <br>
 
         <label for="period_month">Period Month</label>
         <input type="month" id="period_month" name="period_month" required />
