@@ -95,3 +95,13 @@
     initDateDefaults();
   });
 })();
+
+
+
+setTimeout(() => {
+  document.querySelectorAll('.flash').forEach(flash => {
+      flash.style.opacity = "0";
+      flash.style.transform = "translateX(30px)";
+      setTimeout(() => flash.remove(), 400);
+  });
+}, 4000);

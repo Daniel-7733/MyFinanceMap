@@ -49,9 +49,9 @@
   </tr>
 
   <!-- Transaction Detail -->
-  {% for transaction in transactions %}
+  {% for index, transaction in enumerate(transactions) %}
   <tr>
-    <td>{{ transaction.id }}</td>
+    <td>{{ index + 1 }}</td>
     <td>{{ transaction.txn_type }}</td>
     <td>
       {{ "{:,.2f}".format(transaction.amount) }} {{ transaction.currency }}

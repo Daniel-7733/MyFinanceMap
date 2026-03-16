@@ -141,6 +141,7 @@ def show_transactions() -> str:
         today_label=today_label,
         selected_month=selection.month_key,
         selected_label=selection.label,
+        enumerate=enumerate,
     )
 
 

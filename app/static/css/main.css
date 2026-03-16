@@ -455,3 +455,82 @@ tr:hover td {
     width: 100%;
   }
 }
+
+
+/* FLASH CONTAINER */
+.flash-container {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 320px;
+}
+
+/* BASE FLASH STYLE */
+.flash {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    animation: flash-slide-in 0.35s ease;
+}
+
+/* CLOSE BUTTON */
+.flash-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.flash-close:hover {
+    opacity: 1;
+}
+
+/* SUCCESS */
+.flash-success {
+    background: #e8f7ee;
+    color: #1f7a46;
+    border-left: 4px solid #2ecc71;
+}
+
+/* ERROR */
+.flash-error {
+    background: #fdecea;
+    color: #b42318;
+    border-left: 4px solid #e74c3c;
+}
+
+/* INFO */
+.flash-info {
+    background: #eaf2ff;
+    color: #1d4ed8;
+    border-left: 4px solid #3b82f6;
+}
+
+/* WARNING */
+.flash-warning {
+    background: #fff7e6;
+    color: #b45309;
+    border-left: 4px solid #f59e0b;
+}
+
+/* ANIMATION */
+@keyframes flash-slide-in {
+    from {
+        transform: translateX(40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

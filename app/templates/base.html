@@ -58,15 +58,18 @@
       {% block content %}{% endblock %}
     </main>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-          <ul>
-            {% for category, message in messages %}
-              <li>{{ category }}: {{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
     <footer>
       <p>
@@ -82,6 +85,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{{ url_for('static', filename='js/dashboard_charts.js') }}"></script>
+
+  <script src="{{ url_for('static', filename='js/forms.js') }}"></script>
 
   </body>
 </html>

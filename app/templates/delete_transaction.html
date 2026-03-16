@@ -2,13 +2,11 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-<p>Delete Page.</p>
-<h1>ID = {{ transaction }}</h1>
 
 <section>
     <div>
         <form method="POST" action="{{ url_for('main.delete_transaction', id=id) }}">
-            <label>Are you sure You want to delete your {{ transaction }}</label>
+            <label>Are you sure You want to delete your transaction</label>
             <button type="submit">Delete</button>
             <a href="{{ url_for('main.show_transactions', id=transaction.id) }}">Back</a>
         </form>

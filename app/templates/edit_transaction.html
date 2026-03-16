@@ -2,9 +2,6 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
-    <p>Edit Page.</p>
-    <h1>ID = {{ transaction }}</h1>
-
 <section>
   <div class="my-box">
     <form method="POST" action="{{ url_for('main.edit_transaction', id=id) }}">
