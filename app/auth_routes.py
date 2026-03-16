@@ -29,18 +29,18 @@ def debug_users():
 @auth.route("/sign-in", methods=["GET", "POST"])
 def sign_in():
     if request.method == "POST":
-        print("REGISTER POST HIT ✅")
-        print("FORM:", dict(request.form))
+        # print("REGISTER POST HIT ✅")
+        # print("FORM:", dict(request.form))
 
         data = parse_register_form(request.form)
-        print("PARSED DATA:", data)
+        # print("PARSED DATA:", data)
 
         if data is None:
-            print("REGISTER FAILED ❌ parse_register_form returned None")
+            # print("REGISTER FAILED ❌ parse_register_form returned None")
             return render_template("sign_in.html", show_navbar=False, timezone=get_full_current_date())
 
         user = User(
-            username=data.email,
+            username=data.full_name,
             email=data.email,
             password_hash=data.password_hash,
             home_currency=data.home_currency,
@@ -48,7 +48,7 @@ def sign_in():
         )
         db.session.add(user)
         db.session.commit()
-        print("REGISTER SAVED ✅ user_id:", user.id)
+        # print("REGISTER SAVED ✅ user_id:", user.id)
 
         return redirect(url_for("auth.login"))
 
@@ -63,16 +63,16 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        print("LOGIN ATTEMPT:", email, "user_found=", bool(user))
-        if user:
-            print("HASH IN DB:", user.password_hash[:20], "...")
+        # print("LOGIN ATTEMPT:", email, "user_found=", bool(user))
+        # if user:
+        #     print("HASH IN DB:", user.password_hash[:20], "...")
 
         ok = bool(user) and verify_password(password, user.password_hash)
-        print("PASSWORD OK:", ok)
+        # print("PASSWORD OK:", ok)
 
         if ok:
             login_user(user)
-            print("AFTER login_user -> authenticated:", current_user.is_authenticated, "id:", current_user.get_id())
+            # print("AFTER login_user -> authenticated:", current_user.is_authenticated, "id:", current_user.get_id())
             return redirect(url_for("main.home"))
 
         flash("Invalid email or password", "error")

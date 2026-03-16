@@ -68,6 +68,7 @@ def home() -> str:
         available=f"{available:,.2f}",
         deficit=f"{deficit:,.2f}",
         currency=current_user.home_currency,
+        user_name=current_user.username,
     )
 
 
