@@ -20,6 +20,7 @@ The goal of the project is not only expense tracking, but **financial awareness*
 - SQLite database (local-first)
 - Clean modular Flask architecture
 
+
 ### 🚧 Planned
 - City-based cost of living estimation
 - Yearly expense projections
@@ -27,6 +28,14 @@ The goal of the project is not only expense tracking, but **financial awareness*
 - Daily money tips / proverbs
 - Health score (financial stability indicator)
 - Progressive Web App (PWA) support
+
+
+
+### 📈 Future Improvements
+- 📊 Better dashboard charts
+- 🌍 Automatic exchange rate API
+- 📱 Responsive UI
+- ☁️ Deployment (Render / Docker)
 
 ---
 
@@ -112,7 +121,25 @@ python run.py
 http://127.0.0.1:5000
 ```
 
+
+### 🔐 Environment Variables
+
+🔐 Environment Variables
+```
+FLASK_ENV=dev
+SECRET_KEY=your-secret-key
+```
+
+
 ---
+
+### 🛡️ Security
+- Each transaction is linked to a specific user
+- Users cannot access or modify others’ data
+- Passwords are securely hashed
+
+---
+
 ## 📌 Why This Project Exists
 
 This project is part of a long-term learning journey focused on:
@@ -125,3 +152,7 @@ This project is part of a long-term learning journey focused on:
 ## 📄 License
 This project is open for learning and personal use.
 Created by Daniel
+
+
+👤 Author
+Daniel Kazemian
