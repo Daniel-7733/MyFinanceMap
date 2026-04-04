@@ -2,11 +2,14 @@
 {% block title %}Dashboard | MyFinanceMap{% endblock %}
 {% block content %}
 
+<br>
 <h1>Your Dashboard</h1>
 
-<h2>Balance: {{ balance }} {{ currency }}</h2>
+<div class="top-div-cls" id="top-div-id">
+<!--<h2>Balance: {{ balance }} {{ currency }}</h2>-->
 <h2>Balance: {{ available }} {{ currency }}</h2>
 <h2>Deficit: {{ deficit }} {{ currency }}</h2>
+</div>
 
 <form method="GET" action="{{ url_for('main.dashboard') }}">
   <label for="last_n">Show last N months</label>

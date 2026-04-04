@@ -2,10 +2,11 @@
 {% block title %}My Finance Map{% endblock %}
 {% block content %}
 
+<br>
 <h1 class="title-cls" id="title-id">Your Transactions page</h1>
 
 <div class="top-div-cls" id="top-div-id">
-  <h2>Date: {{ selected_label }}</h2><br>
+  <h2>{{ selected_label }}</h2>
   <h2 class="income-cls" id="income-id">Income: {{ income }} {{ currency }}</h2>
   <h2 class="expenses-cls" id="expenses-id">Expenses: {{ expense }} {{ currency }}</h2>
   <h2 class="available-cls" id="available-id">Available: {{ available }} {{ currency }}</h2>
