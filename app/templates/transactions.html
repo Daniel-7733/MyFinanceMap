@@ -67,7 +67,16 @@
         </small>
       {% endif %}
     </td>
-    <td>{{ transaction.category }}</td>
+
+<!--    <td>{{ transaction.category }}</td>-->
+    <td>{{ transaction.category.replace('_', ' ') }}
+      <!-- Add side note for user to see his\her note -->
+      <div class="tooltip">ⓘ
+        <span class="tooltiptext">{{ transaction.note }}</span>
+      </div>
+
+    </td>
+
     <td>{{ transaction.date_paid }}</td>
     <td>{{ transaction.period_month }}</td>
     <td class="edit-table-btn-cls" id="edit-table-btn-id">

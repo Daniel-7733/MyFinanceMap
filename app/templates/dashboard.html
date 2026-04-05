@@ -76,7 +76,8 @@
   </tr>
   {% for row in category_data %}
   <tr>
-    <td>{{ row.category }}</td>
+<!--    <td>{{ row.category }}</td>-->
+    <td>{{ row.category.replace('_', ' ') }}</td>
     <td>{{ "{:,.2f}".format(row.total) }} {{ currency }}</td>
   </tr>
   {% endfor %}
