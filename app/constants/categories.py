@@ -16,6 +16,7 @@ CATEGORY_BUCKETS: dict[str, str] = {
     "public_transport": "needs",
     "health_insurance": "needs",
     "medical": "needs",
+    "haircut": "needs",
 
     # Savings
     "savings": "savings",
