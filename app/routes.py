@@ -119,7 +119,7 @@ def show_transactions() -> str:
         query = query.filter(Transaction.period_month == selection.period_month)
 
     transactions: list[Transaction] = query.all()
-
+    # save_as_csv(transactions)
     incomes, expenses = split_income_expense(transactions)
     income: Decimal = total_income(incomes)
     expense: Decimal = total_expense(expenses)
@@ -144,6 +144,69 @@ def show_transactions() -> str:
         enumerate=enumerate,
     )
 
+from io import StringIO
+import csv
+
+from flask import Response
+from flask_login import login_required, current_user
+
+from .models import Transaction
+
+
+@main.route("/transactions-download")
+@login_required
+def download_transactions() -> Response:
+    transactions: list[Transaction] = (
+        Transaction.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Transaction.id.desc())
+        .all()
+    )
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    # Header row
+    writer.writerow([
+        "ID",
+        "Type",
+        "Amount",
+        "Currency",
+        "Amount Home",
+        "Category",
+        "Note",
+        "Date Paid",
+        "Period Month",
+        "Method",
+        "Created At",
+    ])
+
+    # Data rows
+    for txn in transactions:
+        writer.writerow([
+            txn.id,
+            txn.txn_type,
+            txn.amount,
+            txn.currency,
+            txn.amount_home,
+            txn.category,
+            txn.note or "",
+            txn.date_paid,
+            txn.period_month,
+            txn.method,
+            txn.created_at,
+        ])
+
+    csv_data = output.getvalue()
+    output.close()
+
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=transactions.csv"
+        },
+    )
 
 @main.route("/transactions-edit/<int:id>", methods=["GET", "POST"])
 @login_required
