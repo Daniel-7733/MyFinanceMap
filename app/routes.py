@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Any
 from datetime import datetime
 from decimal import Decimal
+from io import StringIO
+import csv
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, flash
 from flask_login import login_required, current_user
@@ -107,7 +109,6 @@ def show_transactions() -> str:
     month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
 
     # dropdown options need all months
-    # all_transactions: list[Transaction] = Transaction.query.order_by(Transaction.id.desc()).all()
     all_transactions: list[Transaction] = get_user_transactions()
     month_options: dict[str, str] = get_available_months(all_transactions)
     today_key, today_label = get_current_month()
@@ -119,7 +120,7 @@ def show_transactions() -> str:
         query = query.filter(Transaction.period_month == selection.period_month)
 
     transactions: list[Transaction] = query.all()
-    # save_as_csv(transactions)
+
     incomes, expenses = split_income_expense(transactions)
     income: Decimal = total_income(incomes)
     expense: Decimal = total_expense(expenses)
@@ -144,18 +145,10 @@ def show_transactions() -> str:
         enumerate=enumerate,
     )
 
-from io import StringIO
-import csv
-
-from flask import Response
-from flask_login import login_required, current_user
-
-from .models import Transaction
-
-
 @main.route("/transactions-download")
 @login_required
 def download_transactions() -> Response:
+    #Note: right now, this function give the whole transactions not just for a particular month
     transactions: list[Transaction] = (
         Transaction.query
         .filter_by(user_id=current_user.id)
