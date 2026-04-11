@@ -145,26 +145,36 @@ def show_transactions() -> str:
         enumerate=enumerate,
     )
 
-@main.route("/transactions-download")
+from datetime import date
+
+@main.route("/transactions-download", methods=["GET"])
 @login_required
 def download_transactions() -> Response:
-    #Note: right now, this function give the whole transactions not just for a particular month
-    transactions: list[Transaction] = (
-        Transaction.query
-        .filter_by(user_id=current_user.id)
-        .order_by(Transaction.id.desc())
-        .all()
-    )
+    month_str: str | None = request.args.get("month")  # "YYYY-MM" or "all"
+
+    query: Query[Transaction] = current_user_transactions_query().order_by(Transaction.id.desc())
+
+    if month_str and month_str != "all":
+        try:
+            year_str, mon_str = month_str.split("-")
+            period_month_obj = date(int(year_str), int(mon_str), 1)
+            query = query.filter(Transaction.period_month == period_month_obj)
+        except ValueError:
+            # invalid month -> fallback to all current user's transactions
+            pass
+
+    transactions: list[Transaction] = query.all()
 
     output = StringIO()
     writer = csv.writer(output)
 
-    # Header row
+    # Header
     writer.writerow([
         "ID",
         "Type",
         "Amount",
         "Currency",
+        "Exchange Rate To Home",
         "Amount Home",
         "Category",
         "Note",
@@ -174,30 +184,37 @@ def download_transactions() -> Response:
         "Created At",
     ])
 
-    # Data rows
+    # Rows
     for txn in transactions:
         writer.writerow([
             txn.id,
             txn.txn_type,
-            txn.amount,
+            str(txn.amount),
             txn.currency,
-            txn.amount_home,
+            str(txn.exchange_rate_to_home) if txn.exchange_rate_to_home is not None else "",
+            str(txn.amount_home),
             txn.category,
             txn.note or "",
-            txn.date_paid,
-            txn.period_month,
+            txn.date_paid.isoformat(),
+            txn.period_month.isoformat(),
             txn.method,
-            txn.created_at,
+            txn.created_at.isoformat(sep=" ", timespec="seconds"),
         ])
 
-    csv_data = output.getvalue()
+    csv_data: str = output.getvalue()
     output.close()
+
+    # Better filename
+    if month_str and month_str != "all":
+        filename = f"transactions_{month_str}.csv"
+    else:
+        filename = "transactions_all.csv"
 
     return Response(
         csv_data,
         mimetype="text/csv",
         headers={
-            "Content-Disposition": "attachment; filename=transactions.csv"
+            "Content-Disposition": f'attachment; filename="{filename}"'
         },
     )
 

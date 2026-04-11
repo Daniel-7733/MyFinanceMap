@@ -34,7 +34,7 @@
 
 
 <b class="title-table-cls" id="title-table-id">Your Transactions Table:</b>
-<a class="btn" href="{{ url_for('main.download_transactions') }}">Download CSV</a> <!-- Download the table as execl, csv or etc -->
+<a class="btn" href="{{ url_for('main.download_transactions', month=selected_month) }}">Download CSV</a> <!-- Download the table as execl, csv or etc -->
 <!-- Transactions Table -->
 <table class="transactions-cls">
   <!-- Header -->
