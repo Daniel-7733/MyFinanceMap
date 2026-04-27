@@ -85,49 +85,55 @@
 
 
 <hr />
-<!--This is chart part -->
-<h2>Income vs Expense (Monthly)</h2>
-<canvas id="incomeExpenseChart"></canvas>
+<div class="charts-container">
+  <div class="chart-box">
+    <!--This is chart part -->
+    <h2 class="income-vs-expense-cls">Income vs Expense (Monthly)</h2>
+    <canvas id="incomeExpenseChart"></canvas>
+  </div>
+  <div class="chart-box">
+    <!--This is chart part -->
+    <h2 class="category-of-expense-cls">Category of Expense (Monthly)</h2>
+    <canvas id="categoryExpenseDateChart"></canvas>
+  </div>
+</div>
+
+
+<hr />
+<div class="charts-container">
+  <div class="chart-box">
+    <!-- This is chart part -->
+    <h2 class="income-vs-expense-by-date-cls">Income vs Expense By Date (Monthly)</h2>
+    <canvas id="incomeExpenseDateChart"></canvas>
+  </div>
+  <div class="chart-box">
+    <!-- for now is empty unit I add new chart (which is income over time) -->
+  </div>
+</div>
+
+
+<hr />
+<div class="charts-container">
+  <!-- First Chart -->
+  <div class="chart-box">
+    <h2 class="50-30-20Rule-cls">50/30/20 Rule (Monthly)</h2>
+    <canvas id="threePartRule"></canvas>
+  </div>
+
+  <!-- Second Chart -->
+  <div class="chart-box">
+    <h2 class="actual-50-30-20Rule-cls">50/30/20 Rule (Actual)</h2>
+    <canvas id="threePartRuleUser"></canvas>
+  </div>
+</div>
 
 <script>
   const chartData = {{ chart_data | tojson }};
-</script>
-
-
-<hr />
-<!--This is chart part -->
-<h2>Income vs Expense By Date (Monthly)</h2>
-<canvas id="incomeExpenseDateChart"></canvas>
-
-<script>
   const differentChartData = {{ different_chart_data | tojson }};
-</script>
-
-
-<hr />
-<!--This is chart part -->
-<h2>Category of Expense (Monthly)</h2>
-<canvas id="categoryExpenseDateChart"></canvas>
-
-<script>
   const expenseCategory = {{ expense_category | tojson }};
-</script>
-
-<hr />
-<h2>50/30/20 Rule (Monthly income)</h2>
-<canvas id="threePartRule"></canvas>
-
-<script>
   const threePartRule = {{ budgeting_rule | tojson }};
-</script>
-
-
-<hr />
-<h2>50/30/20 Rule (Actual Monthly income)</h2>
-<canvas id="threePartRuleUser"></canvas>
-
-<script>
   const threePartRuleUser = {{ actual_pie | tojson }};
 </script>
+
 
 {% endblock %}

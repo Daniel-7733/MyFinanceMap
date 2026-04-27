@@ -574,3 +574,28 @@ tr:hover td {
   opacity: 1;
 }
 
+
+/* Charts sections */
+.charts-container {
+  display: flex;       /* This puts children side-by-side */
+  gap: 20px;           /* Adds space between the charts */
+  align-items: start;  /* Keeps them aligned at the top */
+}
+
+.chart-box {
+  flex: 1;             /* Makes both charts take up equal width */
+  min-width: 0;        /* Prevents canvas from overflowing */
+}
+
+canvas {
+  width: 100% !important; /* Ensures the canvas stays inside the box */
+  height: auto !important;
+}
+
+.50-30-20Rule-cls, .actual-50-30-20Rule-cls {
+  display: block;      /* Changed from 'none' to see the titles */
+  margin-bottom: 12px;
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+  text-align: center;
+}
+
