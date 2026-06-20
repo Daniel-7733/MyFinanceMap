@@ -381,11 +381,10 @@ def analysis():
 
     return render_template(
         "analysis.html",
-        income=f"{income_total:,.2f}",
-        expense=f"{expense_total:,.2f}",
-        net=f"{net:,.2f}",
+        income=income_total,
+        expense=expense_total,
+        net=net,
         currency=current_user.home_currency,
         top_n=top_n,
         top_expense_categories=top_expense_cat,
-        expense_total=expense_total
     )
