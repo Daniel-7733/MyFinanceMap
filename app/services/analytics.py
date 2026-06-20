@@ -222,3 +222,34 @@ def split_bucket_totals(transactions: Iterable["Transaction"]) -> dict[str, Deci
 
     return totals
 
+
+def expense_category(transactions: Iterable["Transaction"], top_n: int = None) -> dict[str, Decimal]:
+    """
+    Returns chart-ready totals of expenses by category for the given transactions scope.
+    :param transactions: transaction class (object)
+    :param top_n: Number of transactions to return
+    :return: a dictionary of names of category and their value
+    """
+    cat_dict: dict[str, Decimal] = {}
+    for t in transactions:
+
+        if t.txn_type != "expense":
+            continue
+
+        if t.category:
+            if t.category not in cat_dict:
+                cat_dict[t.category] = Decimal("0")
+
+            cat_dict[t.category] += (t.amount_home or Decimal("0"))
+
+    sorted_categories: list[tuple[str, Decimal]] = sorted(
+        cat_dict.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    if top_n is None or top_n > len(sorted_categories):
+        top_n = len(sorted_categories)
+
+    sorted_categories = sorted_categories[:top_n]
+    return dict(sorted_categories)

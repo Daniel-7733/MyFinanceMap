@@ -21,7 +21,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.orm import Query
 
 from .models import Transaction, db
-from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals, split_bucket_totals
+from .services.analytics import monthly_totals, category_totals, monthly_income_expense_series, monthly_income_expense_date_series, category_expense_totals, split_bucket_totals, expense_category
 from .services.budgeting import available_balance, deficit_amount, total_income, total_expense, calculate_503020, rule_503020_from_actual, split_income_expense
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
 from .core.dates import get_current_month
@@ -365,3 +365,23 @@ def dashboard() -> str:
         actual_pie=actual_pie,             # actual totals
         rule=rule,                         # actual percentages vs target
         )
+
+
+@main.route("/analysis")
+@login_required
+def analysis():
+    transactions: list[Transaction] = get_user_transactions()
+    income_total, expense_total, net = get_income_expense_net(transactions)
+
+    top_n: int = 5
+    expense_categories: dict[str, Decimal] = expense_category(transactions, top_n)
+
+    return render_template(
+        "analysis.html",
+        income=f"{income_total:,.2f}",
+        expense=f"{expense_total:,.2f}",
+        net=f"{net:,.2f}",
+        currency=current_user.home_currency,
+        top_n=top_n,
+        categories=expense_categories,
+    )
