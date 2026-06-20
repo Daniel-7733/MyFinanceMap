@@ -223,7 +223,7 @@ def split_bucket_totals(transactions: Iterable["Transaction"]) -> dict[str, Deci
     return totals
 
 
-def expense_category(transactions: Iterable["Transaction"], top_n: int = None) -> dict[str, Decimal]:
+def top_expense_categories(transactions: Iterable["Transaction"], top_n: int = None) -> dict[str, Decimal]:
     """
     Returns chart-ready totals of expenses by category for the given transactions scope.
     :param transactions: transaction class (object)

@@ -18,8 +18,9 @@
 <div>
     <h2>Top {{ top_n }} expenses</h2>
     <ol>
-    {% for category, amount in categories.items() %}
-        <li><strong>{{ category }}: </strong>{{ "{:,.2f}".format(amount) }} {{ currency }}</li>
+    {% for category, amount in top_expense_categories.items() %}
+                                                                                     <!--Or ({{ "%.2f"|format((amount / expense_total) * 100) }})% SAME RESULT-->
+        <li><strong>{{ category }}: </strong>{{ "{:,.2f}".format(amount) }} {{ currency }}  ({{ ((amount / expense_total) * 100) | round(2) }}%)</li>
     {% endfor %}
     </ol>
 </div>
