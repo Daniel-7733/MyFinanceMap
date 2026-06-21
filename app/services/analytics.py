@@ -256,10 +256,12 @@ def top_expense_categories(transactions: Iterable["Transaction"], top_n: int = N
 
 def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: Decimal) -> list[dict[str, Decimal]]:
     """
+    Calculates the percentage of total expenses for each top expense category.
 
-    :param top_expense_cat:
-    :param expense_total:
-    :return:
+    :param top_expense_cat: A dictionary mapping category names to their respective expense amounts.
+    :param expense_total: The absolute total expense amount used to calculate percentages.
+    :return: A list of dictionaries, where each dictionary contains the category name,
+    the raw amount, and its calculated percentage relative to the total.
     """
     top_categories: list[dict[str, Decimal]] = []
 
@@ -279,9 +281,10 @@ def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: D
 
 def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, Decimal]]:
     """
+    Formats raw monthly data into human-readable trend metrics.
 
-    :param month_data:
-    :return:
+    :param month_data: A list of dictionaries containing raw keys "month" (YYYY-MM), "income", and "net".
+    :return: A list of dictionaries containing formatted month names, net amounts, and the net savings rate percentage relative to income.
     """
     monthly_trend: list[dict[str, Decimal]] = []
 
@@ -310,9 +313,11 @@ def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, De
 
 def forecast_next_month(month_data: list[dict[str, Decimal | float]]) -> dict[str, Decimal]:
     """
+    Predicts the next month's finances using a simple average of historical data.
 
-    :param month_data:
-    :return:
+    :param month_data: A list of dictionaries containing "income" and "expense" keys.
+    :return: A dictionary containing the forecasted "income", "expense", and "net" savings
+        for the upcoming month. Returns zeroes if input data is empty.
     """
     if not month_data:
         return {
