@@ -16,14 +16,42 @@
 
 
 <div>
-    <h2>Top {{ top_n }} expenses</h2>
-    <ol>
-    {% for category, amount in top_expense_categories.items() %}
-                                                                                     <!--Or ({{ "%.2f"|format((amount / expense) * 100) }})% SAME RESULT-->
-        <li><strong>{{ category }}: </strong>{{ "{:,.2f}".format(amount) }} {{ currency }} -> ({{ ((amount / expense) * 100) | round(2) }}%)</li>
+    <h2>Top {{ top_n }} Expenses</h2>
 
+    <ol>
+    {% for row in top_categories %}
+        <li>
+            <strong>{{ row.category }}:</strong>
+            {{ "{:,.2f}".format(row.amount) }} {{ currency }}
+            -> {{ "%.2f"|format(row.percentage) }}%
+        </li>
     {% endfor %}
     </ol>
+</div>
+
+
+
+<div>
+    <h2>Monthly Trend</h2>
+
+    <ol>
+    {% for row in month_data %}
+        <li>
+            <strong>{{ row.month }}:</strong>
+            {{ "{:,.2f}".format(row.net) }} {{ currency }}
+             -> {{ "%.2f"|format(row.percentage) }}%
+        </li>
+    {% endfor %}
+    </ol>
+</div>
+
+
+<div>
+    <h2>Next Month Forecast</h2>
+
+    <p><strong>Predicted Income:</strong> {{ "{:,.2f}".format(forecast.income) }} {{ currency }}</p>
+    <p><strong>Predicted Expense:</strong> {{ "{:,.2f}".format(forecast.expense) }} {{ currency }}</p>
+    <p><strong>Predicted Net:</strong> {{ "{:,.2f}".format(forecast.net) }} {{ currency }}</p>
 </div>
 
 

@@ -7,8 +7,7 @@
                             *************************************
 """
 from __future__ import annotations
-
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Iterable
 from sqlalchemy import func, case
@@ -18,7 +17,7 @@ from app.constants import MONEY_2DP, CATEGORY_BUCKETS
 
 
 
-def monthly_totals(user_id: int, last_n: int = 6) -> list[dict[str, Any]]:
+def monthly_totals(user_id: int, last_n: int = 6) -> list[dict[str, Decimal | float]]:
     """
     Return last_n months totals (income / expense / net)
     for one specific user, based on Transaction.period_month.
@@ -61,7 +60,7 @@ def monthly_totals(user_id: int, last_n: int = 6) -> list[dict[str, Any]]:
 
     rows = list(reversed(rows))
 
-    data: list[dict[str, Any]] = []
+    data: list[dict[str, Decimal | float]] = []
     for r in rows:
         income = Decimal(str(r.income))
         expense = Decimal(str(r.expense))
@@ -253,3 +252,85 @@ def top_expense_categories(transactions: Iterable["Transaction"], top_n: int = N
 
     sorted_categories = sorted_categories[:top_n]
     return dict(sorted_categories)
+
+
+def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: Decimal) -> list[dict[str, Decimal]]:
+    """
+
+    :param top_expense_cat:
+    :param expense_total:
+    :return:
+    """
+    top_categories: list[dict[str, Decimal]] = []
+
+    for category, amount in top_expense_cat.items():
+        percentage = Decimal("0")
+
+        if expense_total > 0:
+            percentage: Decimal = (amount / expense_total) * Decimal("100")
+
+        top_categories.append({
+            "category": category,
+            "amount": amount,
+            "percentage": percentage,
+        })
+    return top_categories
+
+
+def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, Decimal]]:
+    """
+
+    :param month_data:
+    :return:
+    """
+    monthly_trend: list[dict[str, Decimal]] = []
+
+    for row in month_data:
+
+        month_name: str = datetime.strptime(
+            row["month"],
+            "%Y-%m"
+        ).strftime("%B %Y")
+
+        percentage: Decimal = Decimal("0")
+
+        income: Decimal = Decimal(row["income"])
+        net: Decimal = Decimal(row["net"])
+
+        if income > 0:
+            percentage = (net / income) * Decimal("100")
+
+        monthly_trend.append({
+            "month": month_name,
+            "net": net,
+            "percentage": percentage,
+        })
+
+    return monthly_trend
+
+def forecast_next_month(month_data: list[dict[str, Decimal | float]]) -> dict[str, Decimal]:
+    """
+
+    :param month_data:
+    :return:
+    """
+    if not month_data:
+        return {
+            "income": Decimal("0"),
+            "expense": Decimal("0"),
+            "net": Decimal("0"),
+        }
+
+    income_total: Decimal | float = sum(row["income"] for row in month_data)
+    expense_total: Decimal | float = sum(row["expense"] for row in month_data)
+
+    count: Decimal = Decimal(str(len(month_data)))
+
+    predicted_income: Decimal = Decimal(income_total) / count
+    predicted_expense: Decimal = Decimal(expense_total) / count
+
+    return {
+        "income": predicted_income,
+        "expense": predicted_expense,
+        "net": predicted_income - predicted_expense,
+    }

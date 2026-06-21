@@ -23,7 +23,7 @@ from sqlalchemy.orm import Query
 from .models import Transaction, db
 from .services.analytics import (monthly_totals, category_totals, monthly_income_expense_series,
                                  monthly_income_expense_date_series, category_expense_totals, split_bucket_totals,
-                                 top_expense_categories)
+                                 top_expense_categories, prepare_top_categories, prepare_monthly_trend, forecast_next_month)
 from .services.budgeting import (available_balance, deficit_amount, total_income, total_expense, calculate_503020,
                                  rule_503020_from_actual, split_income_expense)
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
@@ -378,6 +378,12 @@ def analysis():
 
     top_n: int = 5
     top_expense_cat: dict[str, Decimal] = top_expense_categories(transactions, top_n)
+    top_categories: list[dict[str, Decimal]] = prepare_top_categories(top_expense_cat, expense_total)
+
+    month_data: list[dict[str, Decimal | float]] = monthly_totals(user_id=current_user.id, last_n=top_n)
+    months_data: list[dict[str, Decimal]] = prepare_monthly_trend(month_data)
+
+    forecast = forecast_next_month(month_data)
 
     return render_template(
         "analysis.html",
@@ -386,5 +392,7 @@ def analysis():
         net=net,
         currency=current_user.home_currency,
         top_n=top_n,
-        top_expense_categories=top_expense_cat,
+        top_categories=top_categories,
+        month_data=months_data,
+        forecast=forecast
     )
