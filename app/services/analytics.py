@@ -68,9 +68,9 @@ def monthly_totals(user_id: int, last_n: int = 6) -> list[dict[str, Decimal | fl
         data.append(
             {
                 "month": r.month,
-                "income": float(income),
-                "expense": float(expense),
-                "net": float(income - expense),
+                "income": income,
+                "expense": expense,
+                "net": income - expense,
             }
         )
 
@@ -297,8 +297,8 @@ def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, De
 
         percentage: Decimal = Decimal("0")
 
-        income: Decimal = Decimal(row["income"])
-        net: Decimal = Decimal(row["net"])
+        income: Decimal = Decimal(str(row["income"]))
+        net: Decimal = Decimal(str(row["net"]))
 
         if income > 0:
             percentage = (net / income) * Decimal("100")
@@ -339,3 +339,28 @@ def forecast_next_month(month_data: list[dict[str, Decimal | float]]) -> dict[st
         "expense": predicted_expense,
         "net": predicted_income - predicted_expense,
     }
+
+
+# def completed_monthly_totals(user_id: int, last_n: int = 3) -> list[dict]:
+#
+#     """Usage ->
+#     forecast_data = completed_monthly_totals(
+#         current_user.id,
+#         last_n=3,
+#     )
+#
+#     forecast = forecast_next_month(
+#         forecast_data
+#     )
+#     """
+#     current_month = date.today().strftime("%Y-%m")
+#
+#     rows = (
+#         db.session.query(...)
+#         .filter(Transaction.user_id == user_id)
+#         .filter(month_key < current_month)
+#         .group_by(month_key)
+#         .order_by(month_key.desc())
+#         .limit(last_n)
+#         .all()
+#     )
