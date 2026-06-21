@@ -341,26 +341,14 @@ def forecast_next_month(month_data: list[dict[str, Decimal | float]]) -> dict[st
     }
 
 
-# def completed_monthly_totals(user_id: int, last_n: int = 3) -> list[dict]:
-#
-#     """Usage ->
-#     forecast_data = completed_monthly_totals(
-#         current_user.id,
-#         last_n=3,
-#     )
-#
-#     forecast = forecast_next_month(
-#         forecast_data
-#     )
-#     """
-#     current_month = date.today().strftime("%Y-%m")
-#
-#     rows = (
-#         db.session.query(...)
-#         .filter(Transaction.user_id == user_id)
-#         .filter(month_key < current_month)
-#         .group_by(month_key)
-#         .order_by(month_key.desc())
-#         .limit(last_n)
-#         .all()
-#     )
+def completed_months(month_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Remove the current incomplete month from monthly totals. Ex: current month is June.
+    This function will ignore the current month and finsh the list of months by previous month (May)
+    """
+    current_month: str = date.today().strftime("%Y-%m")
+
+    return [
+        row for row in month_data
+        if row["month"] < current_month
+    ]

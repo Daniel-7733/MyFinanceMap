@@ -23,7 +23,8 @@ from sqlalchemy.orm import Query
 from .models import Transaction, db
 from .services.analytics import (monthly_totals, category_totals, monthly_income_expense_series,
                                  monthly_income_expense_date_series, category_expense_totals, split_bucket_totals,
-                                 top_expense_categories, prepare_top_categories, prepare_monthly_trend, forecast_next_month)
+                                 top_expense_categories, prepare_top_categories, prepare_monthly_trend, forecast_next_month,
+                                 completed_months)
 from .services.budgeting import (available_balance, deficit_amount, total_income, total_expense, calculate_503020,
                                  rule_503020_from_actual, split_income_expense)
 from .services.summary import get_finance_overview, get_balance, get_income_expense_net
@@ -380,10 +381,13 @@ def analysis():
     top_expense_cat: dict[str, Decimal] = top_expense_categories(transactions, top_n)
     top_categories: list[dict[str, Decimal]] = prepare_top_categories(top_expense_cat, expense_total)
 
-    month_data: list[dict[str, Decimal | float]] = monthly_totals(user_id=current_user.id, last_n=top_n)
-    months_data: list[dict[str, Decimal]] = prepare_monthly_trend(month_data)
+    month_data: list[dict[str, Decimal | float]] = monthly_totals(user_id=current_user.id, last_n=12)
+    monthly_trend: list[dict[str, Decimal]] = prepare_monthly_trend(month_data)
 
-    forecast = forecast_next_month(month_data)
+    completed_data: list[dict[str, Any]]  = completed_months(month_data)
+    forecast_data: list[dict[str, Any]]  = completed_data[-3:]
+
+    forecast: dict[str, Decimal] = forecast_next_month(forecast_data)
 
     return render_template(
         "analysis.html",
@@ -393,6 +397,6 @@ def analysis():
         currency=current_user.home_currency,
         top_n=top_n,
         top_categories=top_categories,
-        month_data=months_data,
-        forecast=forecast
+        monthly_trend=monthly_trend,
+        forecast=forecast,
     )

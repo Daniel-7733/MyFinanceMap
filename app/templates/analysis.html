@@ -35,7 +35,7 @@
     <h2>Monthly Trend</h2>
 
     <ol>
-    {% for row in month_data %}
+    {% for row in monthly_trend %}
         <li>
             <strong>{{ row.month }}:</strong>
             {{ "{:,.2f}".format(row.net) }} {{ currency }}
