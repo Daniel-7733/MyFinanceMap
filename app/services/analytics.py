@@ -352,3 +352,103 @@ def completed_months(month_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         row for row in month_data
         if row["month"] < current_month
     ]
+
+
+def income_by_category(transactions: Iterable["Transaction"], category_name: str) -> Decimal:
+    """
+    Calculates the total income for a specific category from an iterable of transactions.
+
+    Example usage:
+    salary_total = income_by_category(transactions, "salary")
+    tips_total = income_by_category(transactions, "tips")
+
+    :param transactions: An iterable collection of Transaction objects.
+    :param category_name: The category to filter by (e.g., "salary", "tips").
+    :return: The total accumulated amount as a Decimal.
+    """
+    total: Decimal = Decimal("0")
+
+    for t in transactions:
+        if t.txn_type != "income":
+            continue
+
+        if t.category != category_name:
+            continue
+
+        total += t.amount_home or Decimal("0")
+
+    return total
+
+
+def monthly_income_by_category(user_id: int, last_n: int = 6) -> list[dict[str, Decimal]]:
+    """
+    Fetches and aggregates monthly income by category for a specific user.
+
+    Calculates the total salary, tips, and combined income for the last N months.
+    Returns the data in chronological order.
+
+    :param user_id: The ID of the user whose data is being queried.
+    :param last_n: The number of recent months to include in the results.
+    :return: A list of dictionaries containing monthly breakdown and totals.
+    """
+
+    month_key = func.strftime("%Y-%m", Transaction.period_month)
+
+    salary_sum = func.coalesce(
+        func.sum(
+            case(
+                (
+                    (Transaction.txn_type == "income") &
+                    (Transaction.category == "salary"),
+                    Transaction.amount_home,
+                ),
+                else_=0,
+            )
+        ),
+        0,
+    )
+
+    tips_sum = func.coalesce(
+        func.sum(
+            case(
+                (
+                    (Transaction.txn_type == "income") &
+                    (Transaction.category == "tips"),
+                    Transaction.amount_home,
+                ),
+                else_=0,
+            )
+        ),
+        0,
+    )
+
+    rows = (
+        db.session.query(
+            month_key.label("month"),
+            salary_sum.label("salary"),
+            tips_sum.label("tips"),
+        )
+        .filter(Transaction.user_id == user_id)
+        .group_by(month_key)
+        .order_by(month_key.desc())
+        .limit(last_n)
+        .all()
+    )
+
+    rows = list(reversed(rows))
+
+    data: list[dict[str, Decimal]] = []
+
+    for r in rows:
+        salary = Decimal(str(r.salary))
+        tips = Decimal(str(r.tips))
+
+        data.append({
+            "month": r.month,
+            "salary": salary,
+            "tips": tips,
+            "total": salary + tips,
+        })
+
+    return data
+

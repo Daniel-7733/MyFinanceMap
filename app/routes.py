@@ -384,8 +384,8 @@ def analysis():
     month_data: list[dict[str, Decimal | float]] = monthly_totals(user_id=current_user.id, last_n=12)
     monthly_trend: list[dict[str, Decimal]] = prepare_monthly_trend(month_data)
 
-    completed_data: list[dict[str, Any]]  = completed_months(month_data)
-    forecast_data: list[dict[str, Any]]  = completed_data[-3:]
+    completed_data: list[dict[str, Any]] = completed_months(month_data)
+    forecast_data: list[dict[str, Any]] = completed_data[-3:]
 
     forecast: dict[str, Decimal] = forecast_next_month(forecast_data)
 
