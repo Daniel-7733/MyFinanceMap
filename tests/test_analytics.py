@@ -1,10 +1,9 @@
 from decimal import Decimal
+from app.services.analytics.forecast import forecast_next_month
 
-from app.services.analytics import forecast_next_month
 
-
-def test_forecast_next_month():
-    month_data = [
+def test_forecast_next_month() -> None:
+    month_data: list[dict[str, str | Decimal]] = [
         {
             "month": "2026-03",
             "income": Decimal("3000"),
@@ -25,8 +24,9 @@ def test_forecast_next_month():
         },
     ]
 
-    forecast = forecast_next_month(month_data)
+    forecast: dict[str, Decimal] = forecast_next_month(month_data)
 
     assert forecast["income"] == Decimal("3000")
     assert forecast["expense"] == Decimal("2000")
     assert forecast["net"] == Decimal("1000")
+

@@ -167,7 +167,6 @@ def monthly_income_expense_date_series(transactions: Iterable[Transaction]) -> d
     return {"labels": labels, "income": income_series, "expense": expense_series}
 
 
-
 def category_expense_totals(transactions: Iterable["Transaction"]) -> dict[str, list]:
     """
     Returns chart-ready totals of expenses by category for the given transactions scope.
@@ -310,6 +309,7 @@ def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, De
         })
 
     return monthly_trend
+
 
 def forecast_next_month(month_data: list[dict[str, Decimal | float]]) -> dict[str, Decimal]:
     """
