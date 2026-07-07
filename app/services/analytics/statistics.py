@@ -1,3 +1,8 @@
+"""
+Statistics
+↓
+"What happened?"
+"""
 from decimal import Decimal
 
 

@@ -1,3 +1,9 @@
+"""
+Trend
+↓
+"Where am I going?"
+"""
+
 from decimal import Decimal
 
 
