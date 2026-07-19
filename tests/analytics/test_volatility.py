@@ -1,7 +1,6 @@
 import pytest
 from decimal import Decimal
-
-from app.services.analytics.volatility import value_range, variance, standard_deviation
+from app.services.analytics.volatility import value_range, variance, standard_deviation, volatility_level
 
 
 @pytest.mark.parametrize(
@@ -44,6 +43,7 @@ def test_variance(values, expected):
     assert variance(values) == expected
 
 
+
 @pytest.mark.parametrize(
     "variance_value, expected",
     [
@@ -56,3 +56,24 @@ def test_variance(values, expected):
 )
 def test_standard_deviation(variance_value, expected):
     assert standard_deviation(variance_value) == expected
+
+
+
+@pytest.mark.parametrize(
+    "cv, expected",
+    [
+        (Decimal("0"), "Very Stable"),
+        (Decimal("4.99"), "Very Stable"),
+        (Decimal("5"), "Stable"),
+        (Decimal("9.99"), "Stable"),
+        (Decimal("10"), "Moderate"),
+        (Decimal("19.99"), "Moderate"),
+        (Decimal("20"), "High"),
+        (Decimal("39.99"), "High"),
+        (Decimal("40"), "Very High"),
+    ],
+)
+def test_volatility_level(cv, expected):
+    assert volatility_level(cv) == expected
+
+

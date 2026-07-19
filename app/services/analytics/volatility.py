@@ -2,8 +2,11 @@
 Volatility
 ↓
 "How stable is that direction?"
+Responsibilities → calculations and classifications.
 """
 from decimal import Decimal
+from app.constants import VOLATILITY_STABLE_THRESHOLD, VOLATILITY_MODERATE_THRESHOLD, VOLATILITY_HIGH_THRESHOLD, VOLATILITY_VERY_HIGH_THRESHOLD
+
 
 def value_range(values: list[Decimal]) -> Decimal:
     """Return the difference between the largest and smallest values.
@@ -78,3 +81,42 @@ def standard_deviation(variance_value: Decimal) -> Decimal:
         return Decimal("0")
     return variance_value.sqrt()
 
+def coefficient_of_variation(values: list[Decimal]) -> Decimal:
+    """
+    Return the coefficient of variation as a percentage.
+
+    CV = standard deviation / absolute mean × 100
+    """
+    if not values:
+        return Decimal("0")
+
+    mean_value: Decimal = average(values)
+
+    if mean_value == 0:
+        return Decimal("0")
+
+    variance_value: Decimal = variance(values)
+    standard_deviation_value: Decimal = standard_deviation(variance_value)
+
+    return (
+        standard_deviation_value
+        / abs(mean_value)
+        * Decimal("100")
+    )
+
+def volatility_level(cv: Decimal) -> str:
+    """Give a human-readable result
+    or in other words, It translates mathematics into human language."""
+    if cv < VOLATILITY_STABLE_THRESHOLD:
+        return "Very Stable"
+
+    if cv < VOLATILITY_MODERATE_THRESHOLD:
+        return "Stable"
+
+    if cv < VOLATILITY_HIGH_THRESHOLD:
+        return "Moderate"
+
+    if cv < VOLATILITY_VERY_HIGH_THRESHOLD:
+        return "High"
+
+    return "Very High"
