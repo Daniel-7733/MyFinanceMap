@@ -7,7 +7,7 @@
 # Number of months ─────────┼→ Confidence Score → Confidence Level
 #                           │
 # Trend consistency ────────┘
-#
+# ====================================
 #            Clear Pipline of this page
 #                 volatility.py
 #                     ↓
@@ -51,6 +51,17 @@
 #                     score=85,
 #                     level="High"
 #                 )
+# ===================================
+# The module pipeline is now
+# CV -------------------------┐
+#                             │
+# Number of months -----------┼→ confidence_score()
+#                             │
+# Trend consistency ----------┘
+#                                 ↓
+#                          confidence_level()
+#                                 ↓
+#                          ConfidenceResult
 # ===================================
 
 from dataclasses import dataclass

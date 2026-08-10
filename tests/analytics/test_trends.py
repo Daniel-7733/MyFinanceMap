@@ -1,6 +1,6 @@
 import pytest
 from decimal import Decimal
-from app.services.analytics.trends import percentage_change, difference, trend_direction
+from app.services.analytics.trends import percentage_change, difference, trend_direction, trend_consistency
 
 
 @pytest.mark.parametrize(
@@ -65,4 +65,61 @@ def test_difference(first, second, expected):
 )
 def test_trend_direction(values, expected):
     assert trend_direction(values) == expected
+
+
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        (
+            [],
+            Decimal("0"),
+        ),
+        (
+            [Decimal("100")],
+            Decimal("0"),
+        ),
+        (
+            [Decimal("100"), Decimal("110")],
+            Decimal("100"),
+        ),
+        (
+            [
+                Decimal("100"),
+                Decimal("110"),
+                Decimal("120"),
+                Decimal("130"),
+            ],
+            Decimal("100"),
+        ),
+        (
+            [
+                Decimal("100"),
+                Decimal("90"),
+                Decimal("80"),
+                Decimal("70"),
+            ],
+            Decimal("100"),
+        ),
+        (
+            [
+                Decimal("100"),
+                Decimal("110"),
+                Decimal("105"),
+                Decimal("120"),
+            ],
+            Decimal("66.66666666666666666666666667"),
+        ),
+        (
+            [
+                Decimal("100"),
+                Decimal("100"),
+                Decimal("100"),
+                Decimal("100"),
+            ],
+            Decimal("100"),
+        ),
+    ],
+)
+def test_trend_consistency(values, expected):
+    assert trend_consistency(values) == expected
 

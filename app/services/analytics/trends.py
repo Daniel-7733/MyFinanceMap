@@ -62,3 +62,45 @@ def trend_direction(values: list[Decimal]) -> str:
     else:
         return "Stable"
 
+
+def trend_consistency(values: list[Decimal]) -> Decimal:
+    """
+    Measure how consistently consecutive values move
+    in the same dominant direction.
+
+    Returns a percentage from 0 to 100.
+
+    Examples:
+        100 -> 110 -> 120 -> 130 = 100%
+        100 -> 110 -> 105 -> 120 = 66.67%
+        100 -> 90  -> 80  -> 70  = 100%
+    """
+    if len(values) < 2:
+        return Decimal("0")
+
+    upward: int = 0
+    downward: int = 0
+    stable: int = 0
+
+    for previous, current in zip(values, values[1:]):
+        if current > previous:
+            upward += 1
+        elif current < previous:
+            downward += 1
+        else:
+            stable += 1
+
+    total_movements = len(values) - 1
+
+    dominant_count = max(
+        upward,
+        downward,
+        stable,
+    )
+
+    return (
+        Decimal(dominant_count)
+        / Decimal(total_movements)
+        * Decimal("100")
+    )
+
