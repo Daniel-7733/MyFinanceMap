@@ -6,9 +6,10 @@ from sqlalchemy import func, case
 from ...models import Transaction, db
 from collections import defaultdict
 from app.constants import CATEGORY_BUCKETS
+from .models import MonthlyTotalRow
 
 
-def monthly_totals(user_id: int, last_n: int = 6) -> list[dict[str, Decimal | float]]:
+def monthly_totals(user_id: int, last_n: int = 6) -> list[MonthlyTotalRow]: # -> list[dict[str, Decimal | float]]
     """
     Return last_n months totals (income / expense / net)
     for one specific user, based on Transaction.period_month.

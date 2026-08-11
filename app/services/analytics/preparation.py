@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
+from .models import MonthlyTotalRow
 
 
 def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: Decimal) -> list[dict[str, Decimal]]:
@@ -62,7 +63,7 @@ def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, De
     return monthly_trend
 
 
-def completed_months(month_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def completed_months(month_data: list[MonthlyTotalRow]) -> list[MonthlyTotalRow]:
     """
     Remove the current incomplete month from monthly totals. Ex: current month is June.
     This function will ignore the current month and finsh the list of months by previous month (May)
