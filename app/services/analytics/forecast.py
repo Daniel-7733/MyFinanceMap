@@ -1,8 +1,8 @@
 from decimal import Decimal
-from app.services.analytics.models import MonthlyTotalRow
+from app.services.analytics.models import MonthlyTotalRow, ForecastResult
 
 
-def forecast_next_month(month_data: list[MonthlyTotalRow]) -> dict[str, Decimal]:
+def forecast_next_month(month_data: list[MonthlyTotalRow]) -> ForecastResult:
     """
     Predicts the next month's finances using a simple average of historical data.
 

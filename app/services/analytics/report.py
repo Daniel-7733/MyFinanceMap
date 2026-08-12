@@ -2,39 +2,14 @@
 # Responsibility is: Build a complete financial analysis report from specialist outputs.
 # ===================================================================
 import decimal
-from dataclasses import dataclass
 from decimal import Decimal
-from .models import MonthlyTotalRow
+from .models import MonthlyTotalRow, FinancialReport
 from .confidence import ConfidenceResult, evaluate_confidence
 from .forecast import forecast_next_month
 from .preparation import completed_months
 from .trends import trend_direction, trend_consistency
 from .volatility import coefficient_of_variation, volatility_level
 
-
-
-@dataclass(frozen=True)
-class FinancialReport:
-    # overview
-    income: Decimal
-    expense: Decimal
-    net: Decimal
-
-    # trend
-    trend_direction: str
-    trend_consistency: Decimal
-
-    # volatility
-    volatility_score: Decimal
-    volatility_level: str
-
-    # forecast
-    forecast_income: Decimal
-    forecast_expense: Decimal
-    forecast_net: Decimal
-
-    # confidence
-    confidence: ConfidenceResult
 
 
 def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_months: int = 3) -> FinancialReport:

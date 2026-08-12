@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
-from .models import MonthlyTotalRow
+from .models import MonthlyTotalRow, MonthlyTrend
 
 
 def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: Decimal) -> list[dict[str, Decimal]]:
@@ -30,29 +30,30 @@ def prepare_top_categories(top_expense_cat: dict[str, Decimal], expense_total: D
     return top_categories
 
 
-def prepare_monthly_trend(month_data: list[dict[str, Any]]) -> list[dict[str, Decimal]]:
+def prepare_monthly_trend(month_data: list[MonthlyTotalRow]) -> list[MonthlyTrend]:
     """
     Formats raw monthly data into human-readable trend metrics.
 
     :param month_data: A list of dictionaries containing raw keys "month" (YYYY-MM), "income", and "net".
     :return: A list of dictionaries containing formatted month names, net amounts, and the net savings rate percentage relative to income.
     """
-    monthly_trend: list[dict[str, Decimal]] = []
+    monthly_trend: list[MonthlyTrend] = []
 
     for row in month_data:
-
         month_name: str = datetime.strptime(
             row["month"],
-            "%Y-%m"
+            "%Y-%m",
         ).strftime("%B %Y")
+
+        income: Decimal = row["income"]
+        net: Decimal = row["net"]
 
         percentage: Decimal = Decimal("0")
 
-        income: Decimal = Decimal(str(row["income"]))
-        net: Decimal = Decimal(str(row["net"]))
-
         if income > 0:
-            percentage = (net / income) * Decimal("100")
+            percentage = (
+                net / income
+            ) * Decimal("100")
 
         monthly_trend.append({
             "month": month_name,

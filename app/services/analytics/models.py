@@ -1,8 +1,47 @@
 from typing import TypedDict
 from decimal import Decimal
+from dataclasses import dataclass
 
-class MonthlyTotalRow(TypedDict): # This is far better than saying dict[str, Decimal | str]
+class MonthlyTotalRow(TypedDict): # This methode is far better than saying dict[str, Decimal | str]
     month: str
     income: Decimal
     expense: Decimal
     net: Decimal
+
+
+class ForecastResult(TypedDict):
+    income: Decimal
+    expense: Decimal
+    net: Decimal
+
+
+@dataclass(frozen=True)
+class ConfidenceResult:
+    score: Decimal
+    level: str
+
+
+class MonthlyTrend(TypedDict):
+    month: str
+    net: Decimal
+    percentage: Decimal
+
+
+@dataclass(frozen=True)
+class FinancialReport:
+    income: Decimal
+    expense: Decimal
+    net: Decimal
+
+    trend_direction: str
+    trend_consistency: Decimal
+
+    volatility_score: Decimal
+    volatility_level: str
+
+    forecast_income: Decimal
+    forecast_expense: Decimal
+    forecast_net: Decimal
+
+    confidence: ConfidenceResult
+

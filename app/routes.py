@@ -22,6 +22,7 @@ from sqlalchemy.orm import Query
 
 from .models import Transaction, db
 from .services.analytics.charts import monthly_income_expense_series, monthly_income_expense_date_series
+from .services.analytics.models import ForecastResult, MonthlyTotalRow, MonthlyTrend
 from .services.analytics.totals import monthly_totals, category_totals, split_bucket_totals
 from .services.analytics.categories import top_expense_categories, monthly_income_by_category, category_expense_totals
 from .services.analytics.preparation import prepare_top_categories, prepare_monthly_trend, completed_months
@@ -383,13 +384,13 @@ def analysis():
     top_expense_cat: dict[str, Decimal] = top_expense_categories(transactions, top_n)
     top_categories: list[dict[str, Decimal]] = prepare_top_categories(top_expense_cat, expense_total)
 
-    month_data: list[dict[str, Decimal | float]] = monthly_totals(user_id=current_user.id, last_n=12)
-    monthly_trend: list[dict[str, Decimal]] = prepare_monthly_trend(month_data)
+    month_data: list[MonthlyTotalRow] = monthly_totals(user_id=current_user.id, last_n=12)
+    monthly_trend: list[MonthlyTrend] = prepare_monthly_trend(month_data)
 
-    completed_data: list[dict[str, Any]] = completed_months(month_data)
-    forecast_data: list[dict[str, Any]] = completed_data[-3:]
+    completed_data: list[MonthlyTotalRow] = completed_months(month_data)
+    forecast_data: list[MonthlyTotalRow] = completed_data[-3:]
 
-    forecast: dict[str, Decimal] = forecast_next_month(forecast_data)
+    forecast: ForecastResult = forecast_next_month(forecast_data)
 
     return render_template(
         "analysis.html",
