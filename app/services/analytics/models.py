@@ -15,16 +15,23 @@ class ForecastResult(TypedDict):
     net: Decimal
 
 
-@dataclass(frozen=True)
-class ConfidenceResult:
-    score: Decimal
-    level: str
-
-
 class MonthlyTrend(TypedDict):
     month: str
     net: Decimal
     percentage: Decimal
+
+
+class CategoryChange(TypedDict):
+    category: str
+    previous: Decimal
+    current: Decimal
+    change_percentage: Decimal
+
+
+@dataclass(frozen=True)
+class ConfidenceResult:
+    score: Decimal
+    level: str
 
 
 @dataclass(frozen=True)
