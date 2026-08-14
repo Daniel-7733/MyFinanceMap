@@ -29,6 +29,14 @@ class CategoryChange(TypedDict):
 
 
 @dataclass(frozen=True)
+class BehaviorPattern:
+    direction: str
+    direction_consistency: Decimal
+    magnitude_stability: Decimal
+    pattern: str
+
+
+@dataclass(frozen=True)
 class ConfidenceResult:
     score: Decimal
     level: str
