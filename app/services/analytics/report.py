@@ -3,10 +3,13 @@
 # ===================================================================
 import decimal
 from decimal import Decimal
-from .models import MonthlyTotalRow, FinancialReport
+
+from .behavior import analyze_behavior_pattern
+from .models import MonthlyTotalRow, FinancialReport, Recommendation, FinancialMetric, BehaviorPattern
 from .confidence import ConfidenceResult, evaluate_confidence
 from .forecast import forecast_next_month
 from .preparation import completed_months
+from .recommendation import recommend_from_behavior
 from .trends import trend_direction, trend_consistency
 from .volatility import coefficient_of_variation, volatility_level
 
@@ -62,7 +65,16 @@ def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_mon
         trend_consistency=consistency,
     )
 
+    behavior: BehaviorPattern | None = analyze_behavior_pattern(expense_values)
+
+    recommendation = recommend_from_behavior(
+        FinancialMetric.EXPENSE,
+        behavior,
+    )
+
     return FinancialReport(
+        analysis_months=len(selected_data),
+
         income=income_total,
         expense=expense_total,
         net=net_total,
@@ -78,4 +90,6 @@ def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_mon
         forecast_net=forecast["net"],
 
         confidence=confidence,
+        behavior=behavior,
+        recommendation=recommendation,
     )

@@ -70,6 +70,8 @@ class ConfidenceResult:
 
 @dataclass(frozen=True)
 class FinancialReport:
+    analysis_months: int
+
     income: Decimal
     expense: Decimal
     net: Decimal
@@ -85,4 +87,6 @@ class FinancialReport:
     forecast_net: Decimal
 
     confidence: ConfidenceResult
+    behavior: BehaviorPattern | None
+    recommendation: Recommendation
 

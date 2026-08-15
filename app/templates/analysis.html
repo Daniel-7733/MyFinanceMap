@@ -2,57 +2,64 @@
 {% block title %}Financial Analysis{% endblock %}
 {% block content %}
 
-<h1>Financial Analysis</h1>
+<h1>Financial Intelligence</h1>
 
-<p>This page will analyze income, expenses, and future prediction.</p>
+<p>
+    <strong>Analysis Window:</strong>
+    Last {{ report.analysis_months }} completed months
+</p>
 
-<div>
-    <h2>Current Overview</h2>
+<p>
+    <strong>Trend:</strong>
+    {{ report.trend_direction }}
+</p>
 
-    <p><strong>Total Income:</strong> {{ "{:,.2f}".format(income) }} {{ currency }}</p>
-    <p><strong>Total Expenses:</strong> {{ "{:,.2f}".format(expense) }} {{ currency }}</p>
-    <p><strong>Net Balance:</strong> {{ "{:,.2f}".format(net) }} {{ currency }}</p>
-</div>
+<p>
+    <strong>Volatility:</strong>
+    {{ report.volatility_level }}
+</p>
 
+<h2>Next Month Forecast</h2>
 
-<div>
-    <h2>Top {{ top_n }} Expenses</h2>
+<p>
+    <strong>Predicted Income:</strong>
+    {{ "{:,.2f}".format(report.forecast_income) }}
+    {{ currency }}
+</p>
 
-    <ol>
-    {% for row in top_categories %}
-        <li>
-            <strong>{{ row.category }}:</strong>
-            {{ "{:,.2f}".format(row.amount) }} {{ currency }}
-            -> {{ "%.2f"|format(row.percentage) }}%
-        </li>
-    {% endfor %}
-    </ol>
-</div>
+<p>
+    <strong>Predicted Expense:</strong>
+    {{ "{:,.2f}".format(report.forecast_expense) }}
+    {{ currency }}
+</p>
 
+<p>
+    <strong>Predicted Net:</strong>
+    {{ "{:,.2f}".format(report.forecast_net) }}
+    {{ currency }}
+</p>
 
+<p>
+    <strong>Forecast Confidence:</strong>
+    {{ report.confidence.level }}
+    ({{ "%.2f"|format(report.confidence.score) }}%)
+</p>
 
-<div>
-    <h2>Monthly Trend</h2>
+{% if report.behavior %}
+    <p>
+        <strong>Behavior:</strong>
+        {{ report.behavior.pattern }}
+    </p>
+{% endif %}
 
-    <ol>
-    {% for row in monthly_trend %}
-        <li>
-            <strong>{{ row.month }}:</strong>
-            {{ "{:,.2f}".format(row.net) }} {{ currency }}
-             -> {{ "%.2f"|format(row.percentage) }}%
-        </li>
-    {% endfor %}
-    </ol>
-</div>
+<p>
+    <strong>Recommendation:</strong>
+    {{ report.recommendation.message }}
+</p>
 
-
-<div>
-    <h2>Next Month Forecast</h2>
-
-    <p><strong>Predicted Income:</strong> {{ "{:,.2f}".format(forecast.income) }} {{ currency }}</p>
-    <p><strong>Predicted Expense:</strong> {{ "{:,.2f}".format(forecast.expense) }} {{ currency }}</p>
-    <p><strong>Predicted Net:</strong> {{ "{:,.2f}".format(forecast.net) }} {{ currency }}</p>
-</div>
-
+<p>
+    <strong>Why:</strong>
+    {{ report.recommendation.reason }}
+</p>
 
 {% endblock %}

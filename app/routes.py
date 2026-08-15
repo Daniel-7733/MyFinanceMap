@@ -23,6 +23,7 @@ from sqlalchemy.orm import Query
 from .models import Transaction, db
 from .services.analytics.charts import monthly_income_expense_series, monthly_income_expense_date_series
 from .services.analytics.models import ForecastResult, MonthlyTotalRow, MonthlyTrend
+from .services.analytics.report import generate_financial_report
 from .services.analytics.totals import monthly_totals, category_totals, split_bucket_totals
 from .services.analytics.categories import top_expense_categories, monthly_income_by_category, category_expense_totals
 from .services.analytics.preparation import prepare_top_categories, prepare_monthly_trend, completed_months
@@ -377,30 +378,19 @@ def dashboard() -> str:
 @main.route("/analysis")
 @login_required
 def analysis():
-    transactions: list[Transaction] = get_user_transactions()
-    income_total, expense_total, net = get_income_expense_net(transactions)
+    month_data = monthly_totals(
+        user_id=current_user.id,
+        last_n=12,
+    )
 
-    top_n: int = 5
-    top_expense_cat: dict[str, Decimal] = top_expense_categories(transactions, top_n)
-    top_categories: list[dict[str, Decimal]] = prepare_top_categories(top_expense_cat, expense_total)
-
-    month_data: list[MonthlyTotalRow] = monthly_totals(user_id=current_user.id, last_n=12)
-    monthly_trend: list[MonthlyTrend] = prepare_monthly_trend(month_data)
-
-    completed_data: list[MonthlyTotalRow] = completed_months(month_data)
-    forecast_data: list[MonthlyTotalRow] = completed_data[-3:]
-
-    forecast: ForecastResult = forecast_next_month(forecast_data)
+    report = generate_financial_report(
+        monthly_data=month_data,
+        number_of_months=3,
+    )
 
     return render_template(
         "analysis.html",
-        income=income_total,
-        expense=expense_total,
-        net=net,
+        report=report,
         currency=current_user.home_currency,
-        top_n=top_n,
-        top_categories=top_categories,
-        monthly_trend=monthly_trend,
-        forecast=forecast,
     )
 
