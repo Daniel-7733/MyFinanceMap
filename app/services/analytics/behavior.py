@@ -1,12 +1,16 @@
+# ===================================
+# behavior.py → describes reality
+# ===================================
+
 from decimal import Decimal
 from app.services.analytics.models import CategoryChange, BehaviorPattern
 from app.services.analytics.trends import trend_consistency
 from app.services.analytics.volatility import coefficient_of_variation
 
 
-# ============================================
-#
-#                Pipline
+# ==============================================
+#                   Pipline
+# ==============================================
 #
 # Previous month categories
 #           │
@@ -62,8 +66,10 @@ def category_changes(previous: dict[str, Decimal],current: dict[str, Decimal]) -
 
     return changes
 
-# ====================== Pipline 2 ========================
-#
+# ==============================================
+#                   Pipline 2
+# ==============================================
+
 #                 Monthly values
 #                       ↓
 #                  Differences

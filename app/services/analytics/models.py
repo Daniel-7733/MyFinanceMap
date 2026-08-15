@@ -1,7 +1,13 @@
 from typing import TypedDict
 from decimal import Decimal
 from dataclasses import dataclass
+from enum import Enum
 
+
+
+# ================================== #
+#              TypedDict
+# ================================== #
 class MonthlyTotalRow(TypedDict): # This methode is far better than saying dict[str, Decimal | str]
     month: str
     income: Decimal
@@ -26,6 +32,26 @@ class CategoryChange(TypedDict):
     previous: Decimal
     current: Decimal
     change_percentage: Decimal
+
+
+
+# ================================== #
+#               Enum
+# ================================== #
+class FinancialMetric(Enum):
+    INCOME = "income"
+    EXPENSE = "expense"
+    SAVING = "saving"
+    DEBT = "debt"
+
+
+
+# ============ @dataclass ============ #
+@dataclass(frozen=True)
+class Recommendation:
+    message: str
+    priority: str
+    reason: str
 
 
 @dataclass(frozen=True)
