@@ -251,6 +251,7 @@ def edit_transaction(id: int) -> Response | str:
                 "edit_transaction.html",
                 transaction=txn,
                 id=id,
+                CURRENCIES=CURRENCIES,
                 CATEGORY_GROUPS=CATEGORY_GROUPS,
                 BUCKET_LABELS=BUCKET_LABELS,
                 MAIN_CURRENCY=current_user.home_currency,
@@ -339,7 +340,7 @@ def dashboard() -> str:
         income=income_total,
         needs=needs_spend,
         wants=wants_spend,
-        savings=leftover,
+        savings=savings_spend,
     )
 
     need_p: float = float(rule["needs_percentage"])
@@ -351,10 +352,12 @@ def dashboard() -> str:
             f"Needs (spent) {need_p:.2f}%",
             f"Wants (spent) {want_p:.2f}%",
             f"Savings (left) {save_p:.2f}%",
+            "Leftover",
         ],
         "values": [
             float(needs_spend),
             float(wants_spend),
+            float(savings_spend),
             float(leftover),
         ],
     }

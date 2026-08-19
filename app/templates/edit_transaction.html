@@ -53,7 +53,7 @@
 
             <option
               value="{{ code }}"
-              {% if transaction.currency_code == code %}selected{% endif %}
+              {% if transaction.currency == code %}selected{% endif %}
             >
               {{ code }} - {{ name }}
             </option>

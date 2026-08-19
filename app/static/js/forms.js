@@ -20,8 +20,12 @@
     function initExchangeRateToggle() {
       const currencySelect = document.getElementById("currency_code");
 
-      if (currencySelect && window.MAIN_CURRENCY) {
-          currencySelect.value = window.MAIN_CURRENCY;
+      if (
+      currencySelect &&
+      window.MAIN_CURRENCY &&
+      !currencySelect.value
+      ) {
+      currencySelect.value = window.MAIN_CURRENCY;
       }
 
       const rateBlock = document.getElementById("rate_block");
