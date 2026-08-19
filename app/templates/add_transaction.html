@@ -21,15 +21,32 @@
         />
 
         <br>
-        <label class="currency_code-label" for="currency_code">Currency</label>
-        <select id="currency_code" name="currency_code" required>
-          <option value="USD">USD - US Dollar</option>
-          <option value="EUR">EUR - Euro</option>
-          <option value="TRY">TRY - Turkish Lira</option>
-          <option value="CAD">CAD - Canadian Dollar</option>
-          <option value="GBP">GBP - British Pound</option>
+        <label class="currency_code-label" for="currency_code">
+          Currency
+        </label>
+
+        <select
+          id="currency_code"
+          name="currency_code"
+          required
+        >
+
+          {% for code, name in CURRENCIES.items() %}
+
+            <option
+              value="{{ code }}"
+              {% if code == MAIN_CURRENCY %}selected{% endif %}
+            >
+              {{ code }} - {{ name }}
+            </option>
+
+          {% endfor %}
+
         </select>
-        <small>Main currency is selected by default. Change only if needed.</small>
+
+        <small>
+          Main currency is selected by default. Change only if needed.
+        </small>
       </div>
 
       <!-- Type -->
@@ -44,54 +61,41 @@
 
       <!-- Category -->
       <div class="category_cls">
-        <label for="category">Category</label>
-        <select id="category" name="category" required>
-          <option value="" selected disabled>Choose category</option>
 
-          <!-- Income -->
-          <option value="salary">Salary</option>
-          <option value="tips">Tips</option>
+        <label for="category">
+          Category
+        </label>
 
-          <!-- Housing -->
-          <option value="rent">Rent</option>
-          <option value="mortgage">Mortgage</option>
+        <select
+          id="category"
+          name="category"
+          required
+        >
 
-          <!-- Utilities -->
-          <option value="electric_bill">Electric Bill</option>
-          <option value="water_bill">Water Bill</option>
-          <option value="gas_bill">Gas Bill</option>
-          <option value="internet">Internet</option>
-          <option value="phone">Phone</option>
+          <option value="" selected disabled>
+            Choose category
+          </option>
 
-          <!-- Food -->
-          <option value="groceries">Groceries</option>
+          {% for bucket, categories in CATEGORY_GROUPS.items() %}
 
-          <!-- Transport -->
-          <option value="fuel">Fuel</option>
-          <option value="public_transport">Public Transport</option>
+            <optgroup label="{{ BUCKET_LABELS[bucket] }}">
 
-          <!-- Health -->
-          <option value="health_insurance">Health Insurance</option>
-          <option value="medical">Medical</option>
-          <option value="pharmacy">Pharmacy</option>
+              {% for category in categories %}
 
-          <!-- Savings -->
-          <option value="savings">Savings</option>
-          <option value="emergency_fund">Emergency Fund</option>
-          <option value="investment">Investment</option>
+                <option value="{{ category }}">
+                  {{ category | replace("_", " ") | title }}
+                </option>
 
-          <!-- Wants -->
-          <option value="coffee">Coffee</option>
-          <option value="entertainment">Entertainment</option>
-          <option value="subscriptions">Subscriptions</option>
-          <option value="travel">Travel</option>
-          <option value="shopping">Shopping</option>
-          <option value="haircut">Haircut</option>
+              {% endfor %}
 
-          <!-- Fallback -->
-          <option value="other">Other</option>
+            </optgroup>
+
+          {% endfor %}
+
         </select>
+
       </div>
+
 
       <!-- Note -->
       <div class="note_cls">

@@ -1,20 +1,37 @@
 {% extends "base.html" %}
-{% block title %}My Finance Map{% endblock %}
+
+{% block title %}Edit Transaction | My Finance Map{% endblock %}
+
 {% block content %}
 
 <section>
   <div class="my-box">
-    <form method="POST" action="{{ url_for('main.edit_transaction', id=id) }}">
-      <h1 class="title-cls" id="title-id">Edit "{{ transaction.category }}" Transaction</h1>
 
-      <!-- Amount + Currency -->
+    <form
+      method="POST"
+      action="{{ url_for('main.edit_transaction', id=transaction.id) }}"
+    >
+
+      <h1 class="title-cls" id="title-id">
+        Edit "{{ transaction.category }}" Transaction
+      </h1>
+
+
+      <!-- ==================== -->
+      <!-- Amount + Currency    -->
+      <!-- ==================== -->
+
       <div class="amount_cls">
-        <label class="amount-label" for="amount">Amount</label>
+
+        <label class="amount-label" for="amount">
+          Amount
+        </label>
+
         <input
           type="number"
           id="amount"
           name="amount"
-          placeholder="19.00"
+          value="{{ transaction.amount }}"
           step="0.01"
           min="0"
           required
@@ -22,140 +39,279 @@
 
         <br>
 
-        <label class="currency_code-label" for="currency_code">Currency</label>
-        <select id="currency_code" name="currency_code" required>
-          <option value="USD">USD - US Dollar</option>
-          <option value="EUR">EUR - Euro</option>
-          <option value="TRY">TRY - Turkish Lira</option>
-          <option value="CAD">CAD - Canadian Dollar</option>
-          <option value="GBP">GBP - British Pound</option>
+        <label class="currency_code-label" for="currency_code">
+          Currency
+        </label>
+
+        <select
+          id="currency_code"
+          name="currency_code"
+          required
+        >
+
+          {% for code, name in CURRENCIES.items() %}
+
+            <option
+              value="{{ code }}"
+              {% if transaction.currency_code == code %}selected{% endif %}
+            >
+              {{ code }} - {{ name }}
+            </option>
+
+          {% endfor %}
+
         </select>
-        <small>Main currency is selected by default. Change only if needed.</small>
+
+        <small>
+          Main currency is selected by default. Change only if needed.
+        </small>
+
       </div>
 
-      <!-- Type -->
+
+      <!-- ==================== -->
+      <!-- Type                 -->
+      <!-- ==================== -->
+
       <div class="type_cls">
-        <label for="txn_type">Type</label>
-        <select id="txn_type" name="txn_type" required>
-          <option value="" selected disabled>Choose type</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
+
+        <label for="txn_type">
+          Type
+        </label>
+
+        <select
+          id="txn_type"
+          name="txn_type"
+          required
+        >
+
+          <option value="" disabled>
+            Choose type
+          </option>
+
+          <option
+            value="income"
+            {% if transaction.txn_type == "income" %}selected{% endif %}
+          >
+            Income
+          </option>
+
+          <option
+            value="expense"
+            {% if transaction.txn_type == "expense" %}selected{% endif %}
+          >
+            Expense
+          </option>
+
         </select>
+
       </div>
+
+
+      <!-- ==================== -->
+      <!-- Category             -->
+      <!-- ==================== -->
 
       <!-- Category -->
       <div class="category_cls">
-        <label for="category">Category</label>
-        <select id="category" name="category" required>
-          <option value="" selected disabled>Choose category</option>
 
-          <!-- Income -->
-          <option value="salary">Salary</option>
-          <option value="tips">Tips</option>
+        <label for="category">
+          Category
+        </label>
 
-          <!-- Housing -->
-          <option value="rent">Rent</option>
-          <option value="mortgage">Mortgage</option>
+        <select
+          id="category"
+          name="category"
+          required
+        >
 
-          <!-- Utilities -->
-          <option value="electric_bill">Electric Bill</option>
-          <option value="water_bill">Water Bill</option>
-          <option value="gas_bill">Gas Bill</option>
-          <option value="internet">Internet</option>
-          <option value="phone">Phone</option>
+          <option value="" disabled>
+            Choose category
+          </option>
 
-          <!-- Food -->
-          <option value="groceries">Groceries</option>
+          {% for bucket, categories in CATEGORY_GROUPS.items() %}
 
-          <!-- Transport -->
-          <option value="fuel">Fuel</option>
-          <option value="public_transport">Public Transport</option>
+            <optgroup label="{{ BUCKET_LABELS[bucket] }}">
 
-          <!-- Health -->
-          <option value="health_insurance">Health Insurance</option>
-          <option value="medical">Medical</option>
-          <option value="pharmacy">Pharmacy</option>
+              {% for category in categories %}
 
-          <!-- Savings -->
-          <option value="savings">Savings</option>
-          <option value="emergency_fund">Emergency Fund</option>
-          <option value="investment">Investment</option>
+                <option
+                  value="{{ category }}"
+                  {% if transaction.category == category %}selected{% endif %}
+                >
+                  {{ category | replace("_", " ") | title }}
+                </option>
 
-          <!-- Wants -->
-          <option value="coffee">Coffee</option>
-          <option value="entertainment">Entertainment</option>
-          <option value="subscriptions">Subscriptions</option>
-          <option value="travel">Travel</option>
-          <option value="shopping">Shopping</option>
-          <option value="haircut">Haircut</option>
+              {% endfor %}
 
-          <!-- Fallback -->
-          <option value="other">Other</option>
+            </optgroup>
+
+          {% endfor %}
+
         </select>
+
       </div>
 
-      <!-- Note -->
+
+      <!-- ==================== -->
+      <!-- Note                 -->
+      <!-- ==================== -->
+
       <div class="note_cls">
-        <label for="note">Note (optional)</label>
+
+        <label for="note">
+          Note (optional)
+        </label>
+
         <input
           type="text"
           id="note"
           name="note"
+          value="{{ transaction.note or '' }}"
           placeholder="Any details..."
           maxlength="200"
         />
+
       </div>
 
-      <!-- Dates -->
+
+      <!-- ==================== -->
+      <!-- Dates                -->
+      <!-- ==================== -->
+
       <div class="dates_cls">
-        <label for="date_paid">Date Paid (optional)</label>
-        <input type="date" id="date_paid" name="date_paid" />
-        <small>If empty, the app can default to today.</small>
+
+        <label for="date_paid">
+          Date Paid (optional)
+        </label>
+
+        <input
+          type="date"
+          id="date_paid"
+          name="date_paid"
+          value="{{ transaction.date_paid.strftime('%Y-%m-%d') if transaction.date_paid else '' }}"
+        />
+
+        <small>
+          If empty, the app can default to today.
+        </small>
 
         <br>
 
-        <label for="period_month">Period Month</label>
-        <input type="month" id="period_month" name="period_month" required />
-        <small>This is the month the transaction belongs to.</small>
+        <label for="period_month">
+          Period Month
+        </label>
+
+        <input
+          type="month"
+          id="period_month"
+          name="period_month"
+          value="{{ transaction.period_month.strftime('%Y-%m') if transaction.period_month else '' }}"
+          required
+        />
+
+        <small>
+          This is the month the transaction belongs to.
+        </small>
+
       </div>
 
-      <!-- Payment Method -->
+
+      <!-- ==================== -->
+      <!-- Payment Method       -->
+      <!-- ==================== -->
+
       <div class="method_cls">
-        <label for="method">Method</label>
-        <select id="method" name="method" required>
-          <option value="" selected disabled>Choose method</option>
-          <option value="card">Card</option>
-          <option value="cash">Cash</option>
+
+        <label for="method">
+          Method
+        </label>
+
+        <select
+          id="method"
+          name="method"
+          required
+        >
+
+          <option value="" disabled>
+            Choose method
+          </option>
+
+          <option
+            value="card"
+            {% if transaction.method == "card" %}selected{% endif %}
+          >
+            Card
+          </option>
+
+          <option
+            value="cash"
+            {% if transaction.method == "cash" %}selected{% endif %}
+          >
+            Cash
+          </option>
+
         </select>
+
       </div>
 
-      <!-- Exchange Rate (only if currency != MAIN_CURRENCY) -->
-      <div class="multi_currency_cls" id="rate_block" style="display:none;">
-        <label for="exchange_rate">Exchange Rate to Main Currency</label>
+
+      <!-- ==================== -->
+      <!-- Exchange Rate        -->
+      <!-- ==================== -->
+
+      <div
+        class="multi_currency_cls"
+        id="rate_block"
+        style="display:none;"
+      >
+
+        <label for="exchange_rate">
+          Exchange Rate to Main Currency
+        </label>
+
         <input
           type="number"
           id="exchange_rate"
           name="exchange_rate"
+          value="{{ transaction.exchange_rate or '' }}"
           placeholder="1.08470000"
           step="0.00000001"
           min="0"
         />
+
         <small id="rate_help">
           Only required when you choose a different currency.
           Example: 1 EUR = 1.0847 USD → rate = 1.0847
         </small>
+
       </div>
 
+
+      <!-- ==================== -->
+      <!-- Buttons              -->
+      <!-- ==================== -->
+
       <div class="submit_cls">
-        <button type="submit">Save</button>
-        <a href="{{ url_for('main.show_transactions', id=transaction.id) }}">Back</a>
+
+        <button type="submit">
+          Save
+        </button>
+
+        <a href="{{ url_for('main.show_transactions') }}">
+          Back
+        </a>
+
       </div>
+
     </form>
+
   </div>
 </section>
 
+
 <script>
-    window.MAIN_CURRENCY = "{{ MAIN_CURRENCY }}";
+  window.MAIN_CURRENCY = "{{ MAIN_CURRENCY }}";
 </script>
 
 <script src="{{ url_for('static', filename='js/forms.js') }}"></script>

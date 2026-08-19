@@ -20,6 +20,8 @@ from flask_login import login_required, current_user
 
 from sqlalchemy.orm import Query
 
+from .constants.categories import CATEGORY_GROUPS, BUCKET_LABELS
+from .constants.currencies import CURRENCIES
 from .models import Transaction, db
 from .services.analytics.charts import monthly_income_expense_series, monthly_income_expense_date_series
 from .services.analytics.models import ForecastResult, MonthlyTotalRow, MonthlyTrend
@@ -108,7 +110,11 @@ def add_transaction() -> Response | str:
         db.session.commit()
         return redirect(url_for("main.show_transactions"))
 
-    return render_template("add_transaction.html", user_currency=current_user.home_currency)
+    return render_template("add_transaction.html",
+                           CURRENCIES=CURRENCIES,
+                           CATEGORY_GROUPS=CATEGORY_GROUPS,
+                           BUCKET_LABELS=BUCKET_LABELS,
+                           user_currency=current_user.home_currency)
 
 
 @main.route("/transactions", methods=["GET"])
@@ -235,17 +241,39 @@ def edit_transaction(id: int) -> Response | str:
     ).first_or_404()
 
     if request.method == "POST":
-        parsed = parse_transaction_form(request.form, current_user.home_currency)
+        parsed = parse_transaction_form(
+            request.form,
+            current_user.home_currency
+        )
+
         if parsed is None:
-            return render_template("edit_transaction.html", transaction=txn, id=id)
+            return render_template(
+                "edit_transaction.html",
+                transaction=txn,
+                id=id,
+                CATEGORY_GROUPS=CATEGORY_GROUPS,
+                BUCKET_LABELS=BUCKET_LABELS,
+                MAIN_CURRENCY=current_user.home_currency,
+            )
 
         apply_parsed_to_model(txn, parsed)
         txn.sync_amount_home(current_user.home_currency)
+
         db.session.commit()
+
         flash("Transaction updated.", "success")
+
         return redirect(url_for("main.show_transactions"))
 
-    return render_template("edit_transaction.html", transaction=txn, id=id)
+    return render_template(
+        "edit_transaction.html",
+        transaction=txn,
+        id=id,
+        CURRENCIES=CURRENCIES,
+        CATEGORY_GROUPS=CATEGORY_GROUPS,
+        BUCKET_LABELS=BUCKET_LABELS,
+        MAIN_CURRENCY=current_user.home_currency,
+    )
 
 
 @main.route("/transactions-delete/<int:id>", methods=["GET", "POST"])

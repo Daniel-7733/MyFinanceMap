@@ -2,6 +2,7 @@ CATEGORY_BUCKETS: dict[str, str] = {
     # income
     "salary": "income",
     "tips": "income",
+    "commission": "income",
 
     # Needs
     "rent": "needs",
@@ -13,26 +14,68 @@ CATEGORY_BUCKETS: dict[str, str] = {
     "phone": "needs",
     "groceries": "needs",
     "fuel": "needs",
+    "car_insurance": "needs",
+    "car_maintenance": "needs",
     "public_transport": "needs",
     "health_insurance": "needs",
     "medical": "needs",
+    "pharmacy": "needs",
     "haircut": "needs",
+    "tax": "needs",
+    "loan_payment": "needs",
+    "credit_card_minimum": "needs",
+    "pet_food": "needs",
 
     # Savings
     "savings": "savings",
     "emergency_fund": "savings",
     "investment": "savings",
     "retirement": "savings",
+    "education": "savings",
 
     # Wants (default)
+    "eating_out": "wants",
     "coffee": "wants",
     "entertainment": "wants",
     "subscriptions": "wants",
     "travel": "wants",
     "shopping": "wants",
+    "hobbies": "wants",
+    "games": "wants",
+    "gifts": "wants",
     "other": "wants",
+    "personal_care": "wants",
 }
 
+BUCKET_LABELS: dict[str, str] = {
+    "income": "Income",
+    "needs": "Needs",
+    "savings": "Savings",
+    "wants": "Wants",
+}
+
+
+def build_category_groups() -> dict[str, list[str]]:
+    """
+    Group transaction categories by their finance bucket.
+
+    CATEGORY_BUCKETS remains the single source of truth.
+    """
+
+    groups: dict[str, list[str]] = {
+        "income": [],
+        "needs": [],
+        "savings": [],
+        "wants": [],
+    }
+
+    for category, bucket in CATEGORY_BUCKETS.items():
+        groups[bucket].append(category)
+
+    return groups
+
+
+CATEGORY_GROUPS: dict[str, list[str]] = build_category_groups()
 
 # --------------List----------------
 
