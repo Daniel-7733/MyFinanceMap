@@ -189,3 +189,123 @@ Answers: **_"What will probably happen next?"_**
 3. What does each module do?
 4. Where should I add new code?
 5. Where should I not add code?
+
+
+### New Model for income, expense, saving:
+```
+                    MONEY SYSTEM
+
+Outside World
+     │
+     │ Income
+     ▼
+  Checking ─────── Transfer ──────► Savings
+     │                               │
+     │ Expense                       │ Transfer back
+     ▼                               ▼
+Outside World                     Checking
+
+
+                    ANALYTICS
+
+Income ─────┐
+Expense ────┼──► Monthly Cash Flow
+Saving ─────┘          │
+                       ▼
+                    Leftover
+                       │
+                       ▼
+              Financial Intelligence
+```
+
+### What actually exists in our financial world?
+```
+                         MyFinanceMap Universe
+
+             ┌──────────── OUTSIDE WORLD ────────────┐
+             │                                       │
+             │        Income              Expense    │
+             │          │                    ▲       │
+             │          ▼                    │       │
+             │      ┌──────────┐             │       │
+             └─────►│ Checking │─────────────┘       │
+                    └────┬─────┘
+                         │
+                      Transfer
+                         │
+                         ▼
+                    ┌─────────┐
+                    │ Savings │
+                    └────┬────┘
+                         │
+                      Transfer
+                         │
+                         ▼
+                    ┌──────────┐
+                    │ Checking │
+                    └──────────┘
+```
+### Example:
+```
+Income      30,000
+Expense    -15,000
+Saving      -5,000
+──────────────────
+Leftover    10,000
+
+```
+### The ownership map
+```
+User
+ │
+ ├── owns → Accounts
+ │
+ └── owns → Financial history
+
+
+Account
+ │
+ └── represents → where money exists
+
+
+Transaction
+ │
+ └── represents → money crossing the system boundary
+
+
+Transfer
+ │
+ └── represents → money moving between accounts
+
+
+Saving
+ │
+ └── derived from → qualifying transfers
+
+
+Leftover
+ │
+ └── derived from → monthly cash flow
+```
+
+### For analytics engine:
+```
+                 FINANCIAL DOMAIN
+
+        Transactions        Transfers
+             │                  │
+             ▼                  ▼
+       Income/Expense       Saving Activity
+             │                  │
+             └────────┬─────────┘
+                      ▼
+               Monthly Cash Flow
+                      │
+              ┌───────┴────────┐
+              ▼                ▼
+           Leftover       Account State
+              │
+              └───────┬────────┘
+                      ▼
+            Financial Intelligence
+```
