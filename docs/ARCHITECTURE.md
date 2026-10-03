@@ -396,3 +396,68 @@ Income / Expense          Internal movement
                                   ▼
                        Financial Intelligence
 ```
+
+### The responsibilities
+```
+             TransferService
+                   │
+        ┌──────────┼──────────┐
+        ▼          ▼          ▼
+     Account    Account    Transfer
+     source     target      history
+```
+
+and pipline will be like this:
+```
+User requests:
+"Save 2,000 TRY"
+
+        ↓
+
+TransferService
+
+        ↓
+
+Validate request
+├── amount > 0?
+├── accounts different?
+├── same owner?
+├── enough money?
+└── same currency?
+
+        ↓
+
+Update balances
+
+Checking
+10,000 → 8,000
+
+Savings
+20,000 → 22,000
+
+        ↓
+
+Create Transfer history
+
+        ↓
+
+Commit everything together
+```
+
+### So responsibility become clear:
+```
+Account
+"What money container exists?"
+
+Transfer
+"What internal movement happened?"
+
+TransferService
+"How do we safely perform that movement?"
+
+Analytics
+"What does the history mean?"
+
+UI
+"What should the user see?"
+```
