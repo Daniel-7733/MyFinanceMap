@@ -309,3 +309,90 @@ Leftover
                       ▼
             Financial Intelligence
 ```
+
+We can think of architecture like this:
+
+```
+          HISTORY
+     source of financial truth
+             │
+             │ produces
+             ▼
+        CURRENT STATE
+      fast stored balances
+      
+In other words:
+"History is authoritative; stored balance is a fast current-state representation."
+```
+
+### The money flow:
+``` 
+                         OUTSIDE WORLD
+                              │
+                         +30,000 Income
+                              │
+                              ▼
+                    ┌──────────────────┐
+                    │     CHECKING     │
+                    │     30,000       │
+                    └────────┬─────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+        15,000 Expense                5,000 Transfer
+              │                             │
+              ▼                             ▼
+       OUTSIDE WORLD                 ┌──────────────┐
+                                    │   SAVINGS    │
+                                    │    5,000     │
+                                    └──────────────┘
+
+
+Monthly interpretation:
+
+Income                 30,000
+Expense               -15,000
+Savings allocation     -5,000
+─────────────────────────────
+Leftover               10,000
+
+
+Account state:
+
+Checking               10,000
+Savings                 5,000
+─────────────────────────────
+Total wealth           15,000
+```
+
+### The whole architecture will store two balances on `User`
+
+```
+                    USER
+                     │
+                  Accounts
+                ┌────┴────┐
+                ▼         ▼
+            Checking    Savings
+                ▲         ▲
+                │         │
+             financial movements
+                │         │
+        ┌───────┴─────────┴───────┐
+        │                         │
+   Transactions               Transfers
+        │                         │
+        ▼                         ▼
+Income / Expense          Internal movement
+        │                         │
+        └────────────┬────────────┘
+                     ▼
+                  History
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+    Current Balances         Analytics
+                                  │
+                                  ▼
+                       Financial Intelligence
+```
