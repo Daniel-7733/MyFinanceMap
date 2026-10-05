@@ -461,3 +461,41 @@ Analytics
 UI
 "What should the user see?"
 ```
+
+### So we can evolve our model to this:
+```
+                         USER
+                          │
+                       Accounts
+                 ┌────────┴────────┐
+                 ▼                 ▼
+             Checking           Savings
+             │   │   │          │   │   │
+            CAD TRY USD        CAD TRY USD
+             │                  │
+             └──── Transfer ────┘
+                  same currency
+                       │
+                       ▼
+                Transfer History
+
+
+Outside World
+     │
+     ├──── Income ─────► Accounts
+     │
+     ◄──── Expense ───── Accounts
+     │
+     ▼
+Transaction History
+
+
+             ALL HISTORY
+                  │
+          ┌───────┴────────┐
+          ▼                ▼
+     Account State      Analytics
+                           │
+                           ▼
+                 Financial Intelligence
+```

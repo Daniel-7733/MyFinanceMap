@@ -1,3 +1,33 @@
+"""
+Our Future schema is now taking shape
+                         User
+                          │
+          ┌───────────────┴────────────────┐
+          │                                │
+          ▼                                ▼
+      Accounts                       Transactions
+          │                                │
+          │                                │
+ ┌────────┼────────┐                       │
+ ▼        ▼        ▼                       │
+Checking Savings Checking                  │
+ TRY      TRY      CAD                     │
+ │         │                               │
+ └────┬────┘                               │
+      │                                    │
+      ▼                                    │
+   Transfers                               │
+      │                                    │
+      └──────────── HISTORY ────────────────┘
+                         │
+                         ▼
+                     Analytics
+                         │
+                         ▼
+             Financial Intelligence
+"""
+
+
 from datetime import date, datetime
 from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy

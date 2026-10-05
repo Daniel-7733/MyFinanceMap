@@ -49,6 +49,46 @@ These values are configurable.
 
 ---
 
+### Mini Road map for Saving
+```
+PHASE 1 — Domain Design
+    Account
+    Transfer
+    invariants
+       ↓
+PHASE 2 — Migration Design
+    Preserve 10 months of Transactions
+    Add new tables
+    Decide opening account balances
+       ↓
+PHASE 3 — SQLAlchemy Models
+    Account
+    Transfer
+       ↓
+PHASE 4 — Transfer Service
+    validation
+    atomic balance updates
+    history
+       ↓
+PHASE 5 — Tests
+    insufficient funds
+    same account
+    ownership
+    currency mismatch
+    successful transfer
+    rollback
+       ↓
+PHASE 6 — UI
+    Checking
+    Savings
+    transfer form
+       ↓
+PHASE 7 — Intelligence
+    Saving activity
+    Leftover
+    account wealth
+```
+
 ## 🏗️ Project Structure
 ```
 MyFinanceMap/
