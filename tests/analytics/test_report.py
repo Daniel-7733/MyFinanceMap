@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from app.services.analytics.report import FinancialReport, generate_financial_report
@@ -34,6 +35,7 @@ def test_generate_financial_report():
     report = generate_financial_report(
         monthly_data=month_data,
         number_of_months=3,
+        reference_date=date(2026, 8, 1),
     )
 
     assert isinstance(report, FinancialReport)

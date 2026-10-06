@@ -9,6 +9,25 @@
                                         4. registers blueprints
 
                             *************************************
+
+
+                            We apply some change to see this:
+                                             MyFinanceMap
+                                                  │
+                                      ┌───────────┴───────────┐
+                                      │                       │
+                                   models.py              migrations/
+                                      │                       │
+                                      │                 baseline
+                                      │                 cb959873d3fb
+                                      │                       │
+                                      └───────────┬───────────┘
+                                                  ▼
+                                             SQLite DB
+                                                  │
+                                          alembic_version
+                                                  │
+                                             cb959873d3fb
 """
 from __future__ import annotations
 
@@ -56,8 +75,8 @@ def create_app() -> Flask:
         return db.session.get(User, int(user_id))
 
     # ❗ If you're using migrations, DO NOT keep create_all long-term
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     from .routes import main
     app.register_blueprint(main, url_prefix="/")

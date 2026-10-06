@@ -5,17 +5,19 @@ import decimal
 from decimal import Decimal
 
 from .behavior import analyze_behavior_pattern
-from .models import MonthlyTotalRow, FinancialReport, Recommendation, FinancialMetric, BehaviorPattern
-from .confidence import ConfidenceResult, evaluate_confidence
+from .models import MonthlyTotalRow, FinancialReport, FinancialMetric, BehaviorPattern
+from .confidence import evaluate_confidence
 from .forecast import forecast_next_month
 from .preparation import completed_months
 from .recommendation import recommend_from_behavior
 from .trends import trend_direction, trend_consistency
 from .volatility import coefficient_of_variation, volatility_level
+from datetime import date
 
 
 
-def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_months: int = 3) -> FinancialReport:
+def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_months: int,
+                              reference_date: date | None = None) -> FinancialReport:
 
     """
         Pipline
@@ -35,12 +37,13 @@ def generate_financial_report(monthly_data: list[MonthlyTotalRow], number_of_mon
                            ↓
                     FinancialReport
 
+    :param reference_date:
     :param monthly_data:
     :param number_of_months:
     :return:
     """
 
-    completed_data = completed_months(monthly_data)
+    completed_data = completed_months(monthly_data, reference_date=reference_date)
     selected_data = completed_data[-number_of_months:]
 
     income_values: list[Decimal] = [row["income"] for row in selected_data]
