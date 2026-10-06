@@ -499,3 +499,42 @@ Transaction History
                            ▼
                  Financial Intelligence
 ```
+
+### So, there is an important distinction here: (Three types)
+```
+1. Historical truth
+   ────────────────
+   Transaction / Transfer
+   "What happened?"
+
+
+2. Current-state truth
+   ───────────────────
+   Account.balance
+   "Where are we now?"
+
+
+3. Analytical truth
+   ────────────────
+   Financial Intelligence
+   "What does the history tell us?"
+```
+
+A simplify model will be:
+```
+              DATABASE
+
+Transactions       Transfers
+     │                 │
+     └──── History ────┘
+              │
+              ▼
+           Accounts
+        Current State
+              │
+              ▼
+           Analytics
+              │
+              ▼
+     Financial Intelligence
+```
