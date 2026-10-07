@@ -35,3 +35,12 @@ class ProdConfig(BaseConfig):
     """Common settings for production environments"""
     DEBUG: bool = False
     SECRET_KEY: str = _required("SECRET_KEY")          # must exist in production
+
+
+
+@dataclass(frozen=True)
+class TestConfig(BaseConfig):
+    """Settings used only while running automated tests."""
+    TESTING: bool = True
+    SECRET_KEY: str = "test-secret-key"
+    SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"

@@ -25,6 +25,32 @@ Checking Savings Checking                  │
                          │
                          ▼
              Financial Intelligence
+
+
+             The ownership
+            User
+             │
+             │ 1
+             │
+             └──────────────┐
+                            │
+                            ▼ many
+                         Account
+                            │
+                    ┌───────┼─────────┐
+                    ▼       ▼         ▼
+                 checking   TRY    1000.00
+
+
+---------------- relationships ----------------
+                    User
+                    ├── transactions ──────► Transaction
+                    │                         │
+                    │                         └── user ──► User
+                    │
+                    └── accounts ───────────► Account
+                                              │
+                                              └── user ──► User
 """
 
 
@@ -82,6 +108,35 @@ class Transaction(db.Model):
         )
 
 
+class Account(db.Model):
+    __tablename__ = "accounts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    account_type: Mapped[str] = mapped_column(String(10), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False)
+    balance: Mapped[Decimal] = mapped_column(db.Numeric(12, 2), nullable=False, default=Decimal("0.00"))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="accounts")
+
+    __table_args__ = (
+        CheckConstraint(
+            "account_type IN ('checking', 'savings')",
+            name="ck_accounts_type",
+        ),
+        CheckConstraint(
+            "balance >= 0",
+            name="ck_accounts_balance_nonnegative",
+        ),
+        UniqueConstraint(
+            "user_id",
+            "account_type",
+            "currency",
+            name="uq_accounts_user_type_currency",
+        ),
+    )
+
+
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -98,3 +153,4 @@ class User(UserMixin, db.Model):
 
     # Relationship
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+    accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")

@@ -38,7 +38,7 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-from config import DevConfig, ProdConfig
+from config import DevConfig, ProdConfig, BaseConfig
 from .models import db, User
 
 
@@ -46,7 +46,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 
-def create_app() -> Flask:
+def create_app(config_override: BaseConfig | None = None,) -> Flask:
     """
     This function creates the app instance.
     :return: Flask app
@@ -54,13 +54,16 @@ def create_app() -> Flask:
     app: Flask = Flask(__name__, instance_relative_config=True)
     makedirs(app.instance_path, exist_ok=True)
 
-    env: str = getenv("FLASK_ENV", "dev").lower()
-    config_obj: ProdConfig | DevConfig = ProdConfig() if env == "prod" else DevConfig()
-    app.config.from_object(config_obj)
+    if config_override is not None:
+        app.config.from_object(config_override)
+    else:
+        env: str = getenv("FLASK_ENV", "dev").lower()
+        config_obj: ProdConfig | DevConfig = ProdConfig() if env == "prod" else DevConfig()
+        app.config.from_object(config_obj)
 
-    # ✅ Bulletproof SQLite path (Windows-safe)
-    db_path: Path = Path(app.instance_path) / "myfinancemap.db"
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path.as_posix()}"
+        # ✅ Bulletproof SQLite path (Windows-safe)
+        db_path: Path = Path(app.instance_path) / "myfinancemap.db"
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path.as_posix()}"
 
     db.init_app(app)
     migrate.init_app(app, db)
