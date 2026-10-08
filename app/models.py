@@ -119,6 +119,13 @@ class Account(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="accounts")
 
+    # ----------------------- relationship ---------------------- #
+    balance_events = relationship(
+        "AccountBalanceEvent",
+        back_populates="account",
+    )
+    # ------------------------------------------------------------ #
+
     __table_args__ = (
         CheckConstraint(
             "account_type IN ('checking', 'savings')",
@@ -136,6 +143,54 @@ class Account(db.Model):
         ),
     )
 
+
+class AccountBalanceEvent(db.Model):
+    __tablename__ = "account_balance_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(db.Numeric(12, 2), nullable=False)
+    balance_before: Mapped[Decimal | None] = mapped_column(db.Numeric(12, 2), nullable=True)
+    balance_after: Mapped[Decimal] = mapped_column(db.Numeric(12, 2), nullable=False)
+    reason: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+
+    # ----------------------- relationship ---------------------- #
+    account = relationship("Account", back_populates="balance_events")
+    # ------------------------------------------------------------ #
+
+    __table_args__ = (
+        CheckConstraint(
+            "event_type IN ('opening', 'correction')",
+            name="ck_balance_events_type",
+        ),
+        CheckConstraint(
+            "balance_after >= 0",
+            name="ck_balance_events_after_nonnegative",
+        ),
+        CheckConstraint(
+            "balance_before IS NULL OR balance_before >= 0",
+            name="ck_balance_events_before_nonnegative",
+        ),
+        CheckConstraint(
+            """
+            (
+                event_type = 'opening'
+                AND balance_before IS NULL
+                AND amount >= 0
+                AND balance_after = amount
+            )
+            OR
+            (
+                event_type = 'correction'
+                AND balance_before IS NOT NULL
+                AND balance_after = balance_before + amount
+            )
+            """,
+            name="ck_balance_events_consistency",
+        ),
+    )
 
 
 class User(UserMixin, db.Model):
