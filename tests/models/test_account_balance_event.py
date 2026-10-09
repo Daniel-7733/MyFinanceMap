@@ -171,7 +171,7 @@ def test_duplicate_opening_event_is_rejected(app: Flask, user: User) -> None:
 
     # 3. Create first opening event with valid values
     first_event = AccountBalanceEvent(
-        account_id=account.id, 
+        account_id=account.id,
         event_type="opening",
         amount=Decimal("0.00"),
         balance_before=None,
