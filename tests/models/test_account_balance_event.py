@@ -155,3 +155,57 @@ def test_valid_correction_is_allowed(app: Flask, user: User) -> None:
         assert saved_event.balance_before == Decimal("8000.00")
         assert saved_event.balance_after == Decimal("7500.00")
         assert saved_event.account_id == account.id
+
+
+def test_duplicate_opening_event_is_rejected(app: Flask, user: User) -> None:
+    # 1. Create valid Account
+    account = Account(
+        user_id=user.id,
+        account_type="checking",
+        currency="TRY",
+        balance=Decimal("0.00"),
+    )
+    # 2. Commit Account
+    db.session.add(account)
+    db.session.commit()
+
+    # 3. Create first opening event with valid values
+    first_event = AccountBalanceEvent(
+        account_id=account.id, 
+        event_type="opening",
+        amount=Decimal("0.00"),
+        balance_before=None,
+        balance_after=Decimal("0.00"),
+        reason="Account initialized with first opening balance",
+    )
+    # 4. Commit successfully
+    db.session.add(first_event)
+    db.session.commit()
+
+    # 5. Create second opening event with identical valid values
+    second_event = AccountBalanceEvent(
+        account_id=account.id,
+        event_type="opening",
+        amount=Decimal("0.00"),
+        balance_before=None,
+        balance_after=Decimal("0.00"),
+        reason="Account initialized with duplicate opening balance",
+    )
+
+    # 6. Attempt commit & 7. IntegrityError expected
+    with pytest.raises(IntegrityError):
+        db.session.add(second_event)
+        db.session.commit()
+
+    # 8. Rollback
+    db.session.rollback()
+
+    # 9. Verify only one opening event exists in the database
+    remaining_events = (
+        db.session.query(AccountBalanceEvent)
+        .filter_by(account_id=account.id, event_type="opening")
+        .all()
+    )
+    assert len(remaining_events) == 1
+    assert remaining_events[0].id == first_event.id
+

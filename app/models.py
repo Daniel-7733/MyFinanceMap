@@ -57,7 +57,7 @@ Checking Savings Checking                  │
 from datetime import date, datetime
 from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint, String, UniqueConstraint, ForeignKey
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.finance import compute_home_amount
 from flask_login import UserMixin
@@ -189,6 +189,12 @@ class AccountBalanceEvent(db.Model):
             )
             """,
             name="ck_balance_events_consistency",
+        ),
+        Index(
+            "uq_balance_events_one_opening_per_account",
+            "account_id",
+            unique=True,
+            sqlite_where=text("event_type = 'opening'"),
         ),
     )
 
