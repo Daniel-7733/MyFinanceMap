@@ -1,4 +1,7 @@
 from decimal import Decimal
+from sqlite3 import IntegrityError
+
+import pytest
 from flask import Flask
 from sqlalchemy import select, func
 from app.models import Account, AccountBalanceEvent, Transaction, User, db
@@ -47,3 +50,76 @@ def test_create_account_with_zero_balance(app: Flask, user: User) -> None:
         )
 
         assert transaction_count == 0
+
+
+def test_create_account_with_positive_balance(app: Flask, user: User) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("100.00"),
+        )
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("100.00")
+        assert saved_account.account_type == "checking"
+        assert saved_account.currency == "TRY"
+        assert saved_account.user_id == user.id
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent).where(
+                AccountBalanceEvent.account_id == account.id
+            )
+        ).all()
+
+        assert len(events) == 1
+        opening_event = events[0]
+
+        assert opening_event.event_type == "opening"
+        assert opening_event.amount == Decimal("100.00")
+        assert opening_event.balance_before is None
+        assert opening_event.balance_after == Decimal("100.00")
+
+        transaction_count = db.session.scalar(
+            select(func.count()).select_from(Transaction)
+        )
+        assert transaction_count == 0
+
+def test_create_duplicate_account(app: Flask, user: User) -> None:
+    with app.app_context():
+        first_account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("100.00"),
+        )
+
+        with pytest.raises(ValueError, match="Account already exists"):
+            create_account(
+                user_id=user.id,
+                account_type="checking",
+                currency="TRY",
+                opening_balance=Decimal("100.00"),
+            )
+
+        accounts = db.session.scalars(
+            select(Account).where(
+                Account.user_id == user.id,
+                Account.account_type == "checking",
+                Account.currency == "TRY",
+            )
+        ).all()
+
+        assert len(accounts) == 1
+        assert accounts[0].id == first_account.id
+        assert accounts[0].balance == Decimal("100.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent).where(
+                AccountBalanceEvent.account_id == first_account.id
+            )
+        ).all()
+
+        assert len(events) == 1
