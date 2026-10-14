@@ -1,5 +1,5 @@
 from decimal import Decimal
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 import pytest
 from flask import Flask
@@ -87,6 +87,7 @@ def test_create_account_with_positive_balance(app: Flask, user: User) -> None:
         )
         assert transaction_count == 0
 
+
 def test_create_duplicate_account(app: Flask, user: User) -> None:
     with app.app_context():
         first_account = create_account(
@@ -123,3 +124,50 @@ def test_create_duplicate_account(app: Flask, user: User) -> None:
         ).all()
 
         assert len(events) == 1
+
+
+def test_create_account_rolls_back_on_event_failure(app: Flask, user: User, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange: (Make the opening event invalid so SQLite rejects it)
+    # -> Intercept AccountBalanceEvent creation to violate ck_balance_events_consistency
+    original_init = AccountBalanceEvent.__init__
+
+    def mock_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+
+        if self.event_type == "opening":
+            self.balance_before = Decimal("9999.99")
+
+    monkeypatch.setattr(
+        AccountBalanceEvent,
+        "__init__",
+        mock_init,
+    )
+
+    # ACT: The opening event should violate a CHECK constraint.
+    with pytest.raises(IntegrityError):
+        create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="USD",
+            opening_balance=Decimal("1000.00"),
+        )
+
+    # assert db.session.is_active
+
+    # ASSERT: The account was not persisted.
+    account_in_db = db.session.scalar(
+        select(Account).where(
+            Account.user_id == user.id,
+            Account.account_type == "checking",
+            Account.currency == "USD",
+        )
+    )
+
+    assert account_in_db is None
+
+    # ASSERT: No opening event was persisted.
+    events = db.session.scalars(
+        select(AccountBalanceEvent)
+    ).all()
+
+    assert events == []
