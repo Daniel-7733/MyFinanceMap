@@ -82,6 +82,96 @@ def create_account(user_id: int, account_type: str, currency: str,
     return account
 
 
+    # --------------- The Pipline ---------------
+    #      Flask Route
+    #           │
+    #           ▼
+    # correct_account_balance()
+    #       │
+    #       ├── Validate inputs
+    #       │
+    #       ├── Find Account belonging to user
+    #       │
+    #       ├── Read current balance
+    #       │
+    #       ├── Calculate signed difference
+    #       │
+    #       ├── Create correction event
+    #       │
+    #       ├── Update Account.balance
+    #       │
+    #       └── Commit both atomically
+    #                  │
+    #                  ▼
+    #             SQLite Database
+    # ---------------------------------------------
+def correct_account_balance(user_id: int, account_id: int, new_balance: Decimal, reason: str) -> Account:
+    """
+    Correct an existing account balance.
+
+    Update the account and create an audit event
+    in one database transaction.
+    """
+
+    # Step 1: Validate inputs.
+    if not integer_validator(user_id):
+        raise ValueError("Invalid user ID")
+
+    if not integer_validator(account_id):
+        raise ValueError("Invalid account ID")
+
+    if not decimal_validator(new_balance):
+        raise ValueError("Invalid new balance")
+
+    if not string_validator(reason, string_length=200):
+        raise ValueError("Invalid correction reason")
+
+    # Step 2: Find the account owned by this user.
+    account = db.session.scalar(
+        select(Account).where(
+            Account.id == account_id,
+            Account.user_id == user_id,
+        )
+    )
+
+    if account is None:
+        raise LookupError("Account does not exist or does not belong to user.")
+
+    # Step 3: Read the existing balance.
+    balance_before = account.balance
+
+    # Step 4: No correction is necessary.
+    if balance_before == new_balance:
+        return account
+
+    # Step 5: Calculate the signed adjustment.
+    adjustment = new_balance - balance_before
+
+    # Step 6: Create an audit event.
+    event = AccountBalanceEvent(
+        account=account,
+        event_type="correction",
+        amount=adjustment,
+        balance_before=balance_before,
+        balance_after=new_balance,
+        reason=reason.strip(),
+    )
+
+    # Step 7: Update the existing account.
+    account.balance = new_balance
+
+    # Step 8: Persist both operations atomically.
+    try:
+        db.session.add(event)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    # Step 9: Return the existing account.
+    return account
+
+
 # ------------------- Helper functions ------------------- #
 def integer_validator(number: int) -> bool:
     """
@@ -100,6 +190,19 @@ def account_type_validator(value: str) -> bool:
 def currency_validator(value: str) -> bool:
     """Accept supported uppercase ISO-style currency codes."""
     return value in CURRENCY_LIST
+
+
+def string_validator(value: str, string_length: int = 200) -> bool:
+    """Validates if a value is a non-empty string within a specific length."""
+    # 1. First, strictly verify it is a string
+    if not isinstance(value, str):
+        return False
+
+    # 2. Now it is safe to check stripping and length
+    if not value.strip() or len(value) > string_length:
+        return False
+
+    return True
 
 
 def decimal_validator(number: Decimal) -> bool:
