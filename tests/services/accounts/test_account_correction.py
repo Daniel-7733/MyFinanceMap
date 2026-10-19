@@ -1,8 +1,11 @@
 from decimal import Decimal
 
 import pytest
+from _pytest import monkeypatch
 from flask import Flask
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+
 from app.models import Account, AccountBalanceEvent, Transaction, User, db
 from app.services.accounts.account_service import create_account, correct_account_balance
 
@@ -167,3 +170,68 @@ def test_cannot_correct_another_users_account(app: Flask, user: User) -> None:
         assert len(events) == 1
         assert events[0].event_type == "opening"
 
+
+def test_correction_rolls_back_on_event_failure(app: Flask, user: User, monkeypatch: pytest.MonkeyPatch) -> None:
+
+    original_init = AccountBalanceEvent.__init__
+
+    def invalid_correction_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+
+        if self.event_type == "correction":
+            self.balance_before = None
+
+    monkeypatch.setattr(
+        AccountBalanceEvent,
+        "__init__",
+        invalid_correction_init,
+    )
+
+    with app.app_context():
+
+        # ARRANGE: Create an account with a valid opening event.
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        account_id = account.id
+
+        # ACT: Attempt a correction with an invalid audit event.
+        with pytest.raises(IntegrityError):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=account_id,
+                new_balance=Decimal("1000.00"),
+                reason="Simulated audit event failure",
+            )
+
+        # ASSERT: Reload the persisted account state.
+        db.session.expire_all()
+
+        saved_account = db.session.get(Account, account_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+        assert saved_account.user_id == user.id
+
+        # ASSERT: Only the original opening event exists.
+        events = db.session.scalars(
+            select(AccountBalanceEvent).where(
+                AccountBalanceEvent.account_id == account_id
+            )
+        ).all()
+
+        assert len(events) == 1
+
+        opening_event = events[0]
+
+        assert opening_event.event_type == "opening"
+        assert opening_event.amount == Decimal("5000.00")
+        assert opening_event.balance_before is None
+        assert opening_event.balance_after == Decimal("5000.00")
+
+        # ASSERT: The Session is usable after rollback.
+        assert db.session.is_active
