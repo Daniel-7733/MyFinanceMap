@@ -235,3 +235,49 @@ def test_correction_rolls_back_on_event_failure(app: Flask, user: User, monkeypa
 
         # ASSERT: The Session is usable after rollback.
         assert db.session.is_active
+
+
+def test_correct_account_balance_upward(app: Flask, user: User) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        correct_account_balance(
+            user_id=user.id,
+            account_id=account.id,
+            new_balance=Decimal("5750.00"),
+            reason="Bank reconciliation",
+        )
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5750.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account.id)
+            .order_by(AccountBalanceEvent.id)
+        ).all()
+
+        assert len(events) == 2
+
+        opening_event, correction_event = events
+
+        # Original opening event remains unchanged.
+        assert opening_event.event_type == "opening"
+        assert opening_event.amount == Decimal("5000.00")
+        assert opening_event.balance_before is None
+        assert opening_event.balance_after == Decimal("5000.00")
+
+        # New correction event records the increase.
+        assert correction_event.event_type == "correction"
+        assert correction_event.amount == Decimal("750.00")
+        assert correction_event.balance_before == Decimal("5000.00")
+        assert correction_event.balance_after == Decimal("5750.00")
+        assert correction_event.reason == "Bank reconciliation"
