@@ -1,4 +1,5 @@
 from decimal import Decimal
+from platform import python_version
 
 import pytest
 from _pytest import monkeypatch
@@ -281,3 +282,93 @@ def test_correct_account_balance_upward(app: Flask, user: User) -> None:
         assert correction_event.balance_before == Decimal("5000.00")
         assert correction_event.balance_after == Decimal("5750.00")
         assert correction_event.reason == "Bank reconciliation"
+
+
+@pytest.mark.parametrize(
+    "incorrect_balance",
+    [
+        Decimal("-100.00"),   # Negative balance
+        Decimal("-0.01"),     # Smallest negative cent
+        Decimal("Infinity"),  # Positive infinity
+        Decimal("-Infinity"), # Negative infinity
+        Decimal("NaN"),       # Not a number
+        Decimal("100.001"),   # More than two decimal places
+    ],
+)
+def test_rejects_invalid_correction_balance(app: Flask, user: User, incorrect_balance: Decimal) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        account_id = account.id
+
+        with pytest.raises(ValueError, match="Invalid new balance"):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=account_id,
+                new_balance=incorrect_balance,
+                reason="Invalid correction",
+            )
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        # The invalid request must not create an audit event.
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account_id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
+
+
+@pytest.mark.parametrize(
+    "invalid_reason",
+    [
+        "",
+        "   ",
+        None,
+        123,
+        "A" * 201,
+    ],
+)
+def test_rejects_invalid_correction_reason(app: Flask, user: User, invalid_reason: str) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        account_id = account.id
+
+        with pytest.raises(ValueError, match="Invalid correction reason"):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=account_id,
+                new_balance=Decimal("4500.00"),
+                reason=invalid_reason,
+            )
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account_id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
