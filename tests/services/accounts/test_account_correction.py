@@ -372,3 +372,81 @@ def test_rejects_invalid_correction_reason(app: Flask, user: User, invalid_reaso
 
         assert len(events) == 1
         assert events[0].event_type == "opening"
+
+
+def test_multiple_successive_corrections(app: Flask, user: User) -> None:
+    with app.app_context():
+        # Opening
+        # Balance: 5,000 TRY
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        account_id = account.id
+
+        # First correction
+        # 5,000 → 4,700 TRY
+        # Adjustment: −300 TRY
+        correct_account_balance(
+            user_id=user.id,
+            account_id=account_id,
+            new_balance=Decimal("4700.00"),
+            reason="Bank reconciliation",
+        )
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("4700.00")
+
+        # Second correction
+        # 4,700 → 5,250 TRY
+        # Adjustment: +550 TRY
+        correct_account_balance(
+            user_id=user.id,
+            account_id=account_id,
+            new_balance=Decimal("5250.00"),
+            reason="Bank reconciliation",
+
+        )
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5250.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account_id)
+            .order_by(AccountBalanceEvent.id.asc())
+        ).all()
+
+        assert len(events) == 3
+        assert events[0].event_type == "opening"
+        assert events[1].event_type == "correction"
+        assert events[2].event_type == "correction"
+
+        opening_event, first_correction, second_correction = events
+
+        # Opening event
+        assert opening_event.event_type == "opening"
+        assert opening_event.amount == Decimal("5000.00")
+        assert opening_event.balance_before is None
+        assert opening_event.balance_after == Decimal("5000.00")
+
+        # First correction: 5000 -> 4700
+        assert first_correction.event_type == "correction"
+        assert first_correction.amount == Decimal("-300.00")
+        assert first_correction.balance_before == Decimal("5000.00")
+        assert first_correction.balance_after == Decimal("4700.00")
+
+        # Second correction: 4700 -> 5250
+        assert second_correction.event_type == "correction"
+        assert second_correction.amount == Decimal("550.00")
+        assert second_correction.balance_before == Decimal("4700.00")
+        assert second_correction.balance_after == Decimal("5250.00")
