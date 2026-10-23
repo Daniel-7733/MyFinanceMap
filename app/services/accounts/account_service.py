@@ -82,7 +82,7 @@ def create_account(user_id: int, account_type: str, currency: str,
     return account
 
 
-    # --------------- The Pipline ---------------
+    # --------------- The Pipeline ---------------
     #      Flask Route
     #           │
     #           ▼
@@ -184,12 +184,15 @@ def integer_validator(number: int) -> bool:
 
 def account_type_validator(value: str) -> bool:
     """Accept only 'checking' or 'savings'."""
-    return value in ['checking', 'savings']
+    return isinstance(value, str) and value in (
+        "checking",
+        "savings",
+    )
 
 
 def currency_validator(value: str) -> bool:
     """Accept supported uppercase ISO-style currency codes."""
-    return value in CURRENCY_LIST
+    return isinstance(value, str) and value in CURRENCY_LIST
 
 
 def string_validator(value: str, string_length: int = 200) -> bool:

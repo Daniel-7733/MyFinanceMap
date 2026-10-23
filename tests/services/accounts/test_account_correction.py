@@ -450,3 +450,148 @@ def test_multiple_successive_corrections(app: Flask, user: User) -> None:
         assert second_correction.amount == Decimal("550.00")
         assert second_correction.balance_before == Decimal("4700.00")
         assert second_correction.balance_after == Decimal("5250.00")
+
+
+@pytest.mark.parametrize(
+    "invalid_id",
+    [0, -1, True, False, "123", None, 1.5],
+)
+def test_invalid_account_id_integer_validator(app: Flask, user: User, invalid_id: int) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+        with pytest.raises(ValueError, match="Invalid account ID"):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=invalid_id,
+                new_balance=Decimal("5000.00"),
+                reason="Bank reconciliation",
+            )
+
+        db.session.expire_all()
+
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account.id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
+
+
+
+@pytest.mark.parametrize(
+    "invalid_id",
+    [0, -1, True, False, "123", None, 1.5],
+)
+def test_invalid_user_id_integer_validator(app: Flask, user: User, invalid_id: int) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+        with pytest.raises(ValueError, match="Invalid user ID"):
+            correct_account_balance(
+                user_id=invalid_id,
+                account_id=account.id,
+                new_balance=Decimal("5000.00"),
+                reason="Bank reconciliation",
+            )
+
+        db.session.expire_all()
+
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account.id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
+
+
+@pytest.mark.parametrize(
+    "nonexistent_account_id",
+    [999999, 100000000]
+)
+def test_cannot_correct_nonexistent_account(app: Flask, user: User, nonexistent_account_id: int) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        with pytest.raises(LookupError, match=r"^Account does not exist or does not belong to user\.$",):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=nonexistent_account_id,
+                new_balance=Decimal("5000.00"),
+                reason="Bank reconciliation",
+            )
+
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account.id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
+
+
+
+def test_2nd_cannot_correct_nonexistent_account(app: Flask, user: User) -> None:
+    with app.app_context():
+        account = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+        nonexistent_account_id = account.id + 1000
+        with pytest.raises(LookupError, match=r"^Account does not exist or does not belong to user\.$",):
+            correct_account_balance(
+                user_id=user.id,
+                account_id=nonexistent_account_id,
+                new_balance=Decimal("5000.00"),
+                reason="Bank reconciliation",
+            )
+
+
+        db.session.expire_all()
+        saved_account = db.session.get(Account, account.id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        events = db.session.scalars(
+            select(AccountBalanceEvent)
+            .where(AccountBalanceEvent.account_id == account.id)
+        ).all()
+
+        assert len(events) == 1
+        assert events[0].event_type == "opening"
+
