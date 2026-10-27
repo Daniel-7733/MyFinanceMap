@@ -109,6 +109,7 @@ class Transaction(db.Model):
 
 
 class Account(db.Model):
+    """Responsibilities: Account holds current balances."""
     __tablename__ = "accounts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -199,6 +200,53 @@ class AccountBalanceEvent(db.Model):
     )
 
 
+
+class Transfer(db.Model):
+    """Responsibilities: Transfer records completed movements between Accounts."""
+    __tablename__ = "transfers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    from_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False) # Account money leaves: Source Account
+    to_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)   # Account money enters: Destination Account
+    amount: Mapped[Decimal] = mapped_column(db.Numeric(12, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
+    reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    # ----------------------- relationship ---------------------- #
+    from_account = relationship("Account", foreign_keys=[from_account_id])         # Usage EX: transfer.from_account
+    to_account = relationship("Account", foreign_keys=[to_account_id])             # Usage EX: transfer.to_account
+    user = relationship("User", back_populates="transfers")
+    # ------------------------------------------------------------ #
+
+    __table_args__ = (
+        CheckConstraint(
+            "amount > 0",
+            name="ck_transfers_amount_positive",
+        ),
+        CheckConstraint(
+            "from_account_id != to_account_id",
+            name="ck_transfers_different_accounts",
+        ),
+    )
+
+
+
+# class TransferAttempt(db.Model):
+#     __tablename__ = "transfer_attempts"
+#
+#     id = ...
+#     user_id = ...
+#     from_account_id = ...
+#     to_account_id = ...
+#     amount = ...
+#     status = ...       # "rejected", "failed", "completed"
+#     failure_reason = ...
+#     created_at = ...
+#
+
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
@@ -215,3 +263,4 @@ class User(UserMixin, db.Model):
     # Relationship
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
+    transfers = relationship("Transfer", back_populates="user")

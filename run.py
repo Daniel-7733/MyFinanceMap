@@ -31,3 +31,40 @@ if __name__ == "__main__":
 # if __name__ == "__main__":
 #     print_memory_usage()
 #     # Your existing app.run() code goes here
+
+
+####Code for back up#####
+"""
+import sqlite3
+from pathlib import Path
+from datetime import datetime
+
+source_path = Path("instance/myfinancemap.db")
+
+backup_dir = Path("backups")
+backup_dir.mkdir(exist_ok=True)
+
+backup_path = backup_dir / (
+    f"myfinancemap_{datetime.now():%Y%m%d_%H%M%S}.db"
+)
+
+# 1. Perform the backup operation
+
+with sqlite3.connect(str(source_path)) as source:
+    with sqlite3.connect(str(backup_path)) as destination:
+        source.backup(destination)
+
+print(f"Backup created: {backup_path}")
+
+# 2. Verify database integrity 
+
+with sqlite3.connect(str(backup_path)) as connection:
+    # Run the integrity check and get the first result row
+    result = connection.execute("PRAGMA integrity_check").fetchone()[0]
+    
+    if result == "ok":
+        print("✅ Success: Backup integrity verified. The file is healthy!")
+    else:
+        print(f"❌ Warning: Backup database is corrupted! Error: {result}")
+"""
+
