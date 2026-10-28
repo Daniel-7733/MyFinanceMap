@@ -49,7 +49,6 @@ backup_path = backup_dir / (
 )
 
 # 1. Perform the backup operation
-
 with sqlite3.connect(str(source_path)) as source:
     with sqlite3.connect(str(backup_path)) as destination:
         source.backup(destination)
@@ -57,7 +56,6 @@ with sqlite3.connect(str(source_path)) as source:
 print(f"Backup created: {backup_path}")
 
 # 2. Verify database integrity 
-
 with sqlite3.connect(str(backup_path)) as connection:
     # Run the integrity check and get the first result row
     result = connection.execute("PRAGMA integrity_check").fetchone()[0]
@@ -66,5 +64,12 @@ with sqlite3.connect(str(backup_path)) as connection:
         print("✅ Success: Backup integrity verified. The file is healthy!")
     else:
         print(f"❌ Warning: Backup database is corrupted! Error: {result}")
+        
+        # Automatically delete the corrupted file
+        try:
+            backup_path.unlink()
+            print("🗑️ Corrupted backup file has been automatically deleted.")
+        except Exception as e:
+            print(f"⚠️ Could not delete the corrupted file: {e}")
 """
 

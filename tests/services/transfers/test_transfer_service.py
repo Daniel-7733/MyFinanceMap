@@ -30,7 +30,6 @@ def test_successful_transfer_between_accounts(app: Flask, user: User) -> None:
         savings_id = savings.id
 
         # Step 2: Execute the transfer.
-        # This function does not exist yet — RED phase.
         transfer_money(
             user_id=user.id,
             from_account_id=checking_id,
