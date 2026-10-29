@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import pytest
 from flask import Flask
 from sqlalchemy import select
 
@@ -78,3 +79,47 @@ def test_successful_transfer_between_accounts(app: Flask, user: User) -> None:
         ).all()
 
         assert len(transactions) == 0
+
+
+
+def test_transfer_rejects_insufficient_funds(app: Flask, user: User) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("1000.00"),
+        )
+
+        savings = create_account(
+            user_id=user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("500.00"),
+        )
+
+        # Your task:
+        # 1. Attempt to transfer 1500 TRY.
+        # 2. Assert that ValueError is raised.
+        with pytest.raises(ValueError, match=r"^Insufficient funds\.$"):
+            transfer_money(
+                user.id,
+                checking.id,
+                savings.id,
+                Decimal("1500.00")
+            )
+        # 3. Reload both Accounts from the database.
+        db.session.expire_all()
+        # 4. Verify that their balances are unchanged.
+        assert checking.balance == Decimal("1000.00")
+        assert savings.balance == Decimal("500.00")
+        # 5. Verify that no Transfer record was created.
+        transfers = db.session.scalars(
+            select(Transfer).where(
+                Transfer.user_id == user.id
+            )
+        ).all()
+
+        assert len(transfers) == 0
+
+
