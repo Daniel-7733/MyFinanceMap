@@ -5,6 +5,7 @@ from flask import Flask
 from sqlalchemy import select
 
 from app.models import User, Account, Transfer, Transaction, db
+from app.services import transfers
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
 
@@ -334,4 +335,66 @@ def test_transfer_allows_exact_maximum_destination_balance(app: Flask, user: Use
         assert saved_transfer.to_account_id == savings.id
         assert saved_transfer.amount == Decimal("999.99")
         assert saved_transfer.currency == "TRY"
+
+
+
+def test_transfer_rolls_back_when_commit_fails(app: Flask, user: User, monkeypatch: pytest.MonkeyPatch) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("2000.00"),
+        )
+
+        checking_id = checking.id
+        savings_id = savings.id
+
+        # Your exercise starts here.
+        # Simulate a failure whenever commit() is called.
+        def failing_commit() -> None:
+            raise RuntimeError("Simulated commit failure")
+
+        # Replace the real commit method temporarily.
+        with monkeypatch.context() as patch:
+            patch.setattr(db.session, "commit", failing_commit)
+
+            # The transfer should fail during commit.
+            with pytest.raises(RuntimeError, match=r"^Simulated commit failure$"):
+                transfer_money(
+                    user_id=user.id,
+                    from_account_id=checking_id,
+                    to_account_id=savings_id,
+                    amount=Decimal("500.00"),
+                )
+
+        # The original commit method is restored here.
+
+        # Reload the persisted Account state.
+        db.session.expire_all()
+
+        saved_checking = db.session.get(Account, checking_id)
+        saved_savings = db.session.get(Account, savings_id)
+
+        assert saved_checking is not None
+        assert saved_savings is not None
+
+        assert saved_checking.balance == Decimal("5000.00")
+        assert saved_savings.balance == Decimal("2000.00")
+
+        # No Transfer record should have been persisted.
+        transfers = db.session.scalars(
+            select(Transfer).where(
+                Transfer.user_id == user.id
+            )
+        ).all()
+
+        assert len(transfers) == 0
 
