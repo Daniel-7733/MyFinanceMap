@@ -1,11 +1,9 @@
 from decimal import Decimal
-
 import pytest
 from flask import Flask
-from sqlalchemy import select
-
+from sqlalchemy import select, event
+from sqlalchemy.exc import IntegrityError
 from app.models import User, Account, Transfer, Transaction, db
-from app.services import transfers
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
 
@@ -375,8 +373,6 @@ def test_transfer_rolls_back_when_commit_fails(app: Flask, user: User, monkeypat
                     amount=Decimal("500.00"),
                 )
 
-        # The original commit method is restored here.
-
         # Reload the persisted Account state.
         db.session.expire_all()
 
@@ -397,4 +393,65 @@ def test_transfer_rolls_back_when_commit_fails(app: Flask, user: User, monkeypat
         ).all()
 
         assert len(transfers) == 0
+
+
+
+def test_transfer_rolls_back_on_database_constraint_failure(app: Flask, user: User) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("2000.00"),
+        )
+
+        checking_id = checking.id
+        savings_id = savings.id
+
+        # This listener deliberately corrupts the Transfer amount
+        # immediately before SQLAlchemy generates the INSERT.
+        def force_invalid_amount(mapper, connection, target):
+            target.amount = Decimal("-1000.00")
+
+        event.listen(Transfer, "before_insert", force_invalid_amount)
+
+        try:
+            with pytest.raises(IntegrityError):
+                transfer_money(
+                    user_id=user.id,
+                    from_account_id=checking_id,
+                    to_account_id=savings_id,
+                    amount=Decimal("1000.00"),
+                )
+        finally:
+            # Always remove the listener, even if the test fails.
+            event.remove(Transfer, "before_insert", force_invalid_amount)
+
+        db.session.expire_all()
+
+        saved_checking = db.session.get(Account, checking_id)
+        saved_savings = db.session.get(Account, savings_id)
+
+        assert saved_checking is not None
+        assert saved_savings is not None
+
+        assert saved_checking.balance == Decimal("5000.00")
+        assert saved_savings.balance == Decimal("2000.00")
+
+        transfers = db.session.scalars(
+            select(Transfer)
+            .where(
+                Transfer.user_id == user.id
+            )
+        ).all()
+
+        assert len(transfers) == 0
+
 
