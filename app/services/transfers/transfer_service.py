@@ -1,6 +1,6 @@
 from decimal import Decimal
 from app.models import Transfer, db, Account
-from sqlalchemy import select
+from sqlalchemy import select, update
 from app.services.accounts.account_service import (
     integer_validator, string_validator, decimal_validator, MAX_ACCOUNT_BALANCE,
 )
@@ -41,19 +41,40 @@ def transfer_money(user_id: int, from_account_id: int,
     if not is_same_currency(from_account, to_account):
         raise ValueError("Currencies are different.")
 
-    # The source must contain sufficient money.
-    if amount > from_account.balance:
-        raise ValueError("Insufficient funds.")
-
-    # The destination must remain within supported limits.
-    if to_account.balance + amount > MAX_ACCOUNT_BALANCE:
-        raise ValueError("Destination balance exceeds the maximum.")
-
     # Step 6: Execute the transfer atomically.
     try:
         # Update both Account balances.
-        from_account.balance -= amount
-        to_account.balance   += amount
+        result = db.session.execute(
+            update(Account)
+            .where(
+                Account.id == from_account_id,
+                Account.user_id == user_id,
+                Account.balance >= amount,
+            )
+            .values(
+                balance=Account.balance - amount
+            )
+        )
+
+        if result.rowcount != 1:
+            raise ValueError("Insufficient funds.")
+
+        # Credit the destination Account only if its balance
+        # will remain within the maximum supported limit.
+        second_result = db.session.execute(
+            update(Account)
+            .where(
+                Account.id == to_account_id,
+                Account.user_id == user_id,
+                Account.balance <= MAX_ACCOUNT_BALANCE - amount,
+            )
+            .values(
+                balance=Account.balance + amount
+            )
+        )
+
+        if second_result.rowcount != 1:
+            raise ValueError("Destination balance exceeds the maximum.")
 
         # Create the historical transfer record.
         transfer = Transfer(
