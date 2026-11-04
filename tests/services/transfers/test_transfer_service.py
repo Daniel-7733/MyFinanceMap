@@ -455,3 +455,99 @@ def test_transfer_rolls_back_on_database_constraint_failure(app: Flask, user: Us
         assert len(transfers) == 0
 
 
+
+def test_transfer_rolls_back_when_destination_exceeds_limit(app: Flask, user: User) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("9999999500.00"),
+        )
+
+        with pytest.raises(ValueError, match=r"^Destination balance exceeds the maximum\.$"):
+            transfer_money(
+                user_id=user.id,
+                from_account_id=checking.id,
+                to_account_id=savings.id,
+                amount=Decimal("1000.00"),
+            )
+
+        db.session.expire_all()
+
+        assert checking.balance == Decimal("5000.00")
+        assert savings.balance == Decimal("9999999500.00")
+
+        transfers = db.session.scalars(
+            select(Transfer)
+            .where(
+                Transfer.user_id == user.id
+            )
+        ).all()
+
+        assert len(transfers) == 0
+
+
+
+def test_two_transfers_cannot_overspend_same_source(app: Flask, user: User) -> None:
+
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("0.00"),
+        )
+
+        transfer_money(
+            user_id=user.id,
+            from_account_id=checking.id,
+            to_account_id=savings.id,
+            amount=Decimal("4000.00"),
+        )
+
+
+        with pytest.raises(ValueError, match=r"^Insufficient funds\.$"):
+            transfer_money(
+                user_id=user.id,
+                from_account_id=checking.id,
+                to_account_id=savings.id,
+                amount=Decimal("3000.00"),
+            )
+
+        db.session.expire_all()
+        assert checking.balance == Decimal("1000.00")
+        assert savings.balance == Decimal("4000.00")
+
+        transfers = db.session.scalars(
+            select(Transfer)
+            .where(
+                Transfer.user_id == user.id
+            )
+        ).all()
+
+
+        assert len(transfers) == 1
+        saved_transfer = transfers[0]
+
+        assert saved_transfer.from_account_id == checking.id
+        assert saved_transfer.to_account_id == savings.id
+        assert saved_transfer.amount == Decimal("4000.00")
+        assert saved_transfer.currency == "TRY"
+
+
+
