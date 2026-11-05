@@ -6,6 +6,8 @@ from sqlalchemy.exc import IntegrityError
 from app.models import User, Account, Transfer, Transaction, db
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
+from threading import Thread, Barrier
+
 
 
 def test_successful_transfer_between_accounts(app: Flask, user: User) -> None:
@@ -550,4 +552,58 @@ def test_two_transfers_cannot_overspend_same_source(app: Flask, user: User) -> N
         assert saved_transfer.currency == "TRY"
 
 
+
+def test_two_threads_can_read_same_account(app: Flask, user: User) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        account_id = checking.id
+
+    barrier = Barrier(2)
+
+    results: dict[str, Decimal] = {}
+    errors: list[Exception] = []
+
+    def worker(name: str) -> None:
+        try:
+            with app.app_context():
+                barrier.wait(timeout=5)
+
+                account = db.session.get(Account, account_id)
+
+                if account is None:
+                    raise LookupError("Account not found")
+
+                results[name] = account.balance
+
+        except Exception as exc:
+            errors.append(exc)
+
+    # Your exercise begins here:
+    # Create thread_a and thread_b.
+    thread_a = Thread(target=worker, args=("A",))
+    thread_b = Thread(target=worker, args=("B",))
+    # Start both.
+    thread_a.start()
+    thread_b.start()
+    # Join both.
+    thread_a.join(timeout=10)
+    thread_b.join(timeout=10)
+
+    assert not thread_a.is_alive()
+    assert not thread_b.is_alive()
+
+    assert len(results) == 2
+
+    # Verify results and errors.
+    assert not errors
+    assert results == {
+        "A": Decimal("5000.00"),
+        "B": Decimal("5000.00"),
+    }
 
