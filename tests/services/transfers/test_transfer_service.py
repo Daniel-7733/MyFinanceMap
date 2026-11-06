@@ -615,4 +615,3 @@ def test_concurrent_database_setup(concurrent_app: Flask) -> None:
         assert db.engine.url.database.endswith("concurrency.db")
 
 
-        
