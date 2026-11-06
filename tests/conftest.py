@@ -30,12 +30,15 @@ Clean everything up
                      ▼
               real Account model
 """
+from pathlib import Path
+
 import pytest
 from flask import Flask
 
 from app import create_app
 from app.models import User, db
 from config import TestConfig
+from dataclasses import replace
 
 
 @pytest.fixture
@@ -66,3 +69,24 @@ def user(app: Flask) -> User:
         db.session.commit()
 
         yield user
+
+
+@pytest.fixture
+def concurrent_app(tmp_path: Path) -> Flask:
+    database_path = tmp_path / "concurrency.db"
+
+    config = replace(
+        TestConfig(),
+        SQLALCHEMY_DATABASE_URI=f"sqlite:///{database_path}",
+    )
+
+    app = create_app(config)
+
+    with app.app_context():
+        db.create_all()
+
+        yield app
+
+        db.session.remove()
+        db.drop_all()
+

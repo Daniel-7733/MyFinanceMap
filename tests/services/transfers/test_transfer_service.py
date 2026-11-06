@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models import User, Account, Transfer, Transaction, db
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
-from threading import Thread, Barrier
+from threading import Thread, Barrier, Event
 
 
 
@@ -607,3 +607,12 @@ def test_two_threads_can_read_same_account(app: Flask, user: User) -> None:
         "B": Decimal("5000.00"),
     }
 
+
+
+def test_concurrent_database_setup(concurrent_app: Flask) -> None:
+    with concurrent_app.app_context():
+        assert db.engine.url.database is not None
+        assert db.engine.url.database.endswith("concurrency.db")
+
+
+        
