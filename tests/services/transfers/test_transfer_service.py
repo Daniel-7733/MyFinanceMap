@@ -1,8 +1,8 @@
 from decimal import Decimal
 import pytest
-from flask import Flask
+from flask import Flask, session
 from sqlalchemy import select, event
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from app.models import User, Account, Transfer, Transaction, db
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
@@ -584,7 +584,6 @@ def test_two_threads_can_read_same_account(app: Flask, user: User) -> None:
         except Exception as exc:
             errors.append(exc)
 
-    # Your exercise begins here:
     # Create thread_a and thread_b.
     thread_a = Thread(target=worker, args=("A",))
     thread_b = Thread(target=worker, args=("B",))
@@ -613,5 +612,257 @@ def test_concurrent_database_setup(concurrent_app: Flask) -> None:
     with concurrent_app.app_context():
         assert db.engine.url.database is not None
         assert db.engine.url.database.endswith("concurrency.db")
+
+
+
+
+
+def test_concurrent_transfers_cannot_overspend(
+    concurrent_app: Flask,
+) -> None:
+    """
+    Test that two concurrent transfers cannot overspend one account.
+
+    Initial balances:
+        Checking: 5000 TRY
+        Savings:     0 TRY
+
+    Concurrent requests:
+        Thread A: Transfer 2000 TRY
+        Thread B: Transfer 4000 TRY
+
+    Financial invariants:
+        1. Neither account becomes negative.
+        2. Total money remains 5000 TRY.
+        3. Both transfers cannot succeed.
+        4. Successful transfers match database balances.
+        5. Transfer history matches committed transfers.
+    """
+
+    # --------------------------------------------------
+    # STEP 1: Prepare the test database
+    # --------------------------------------------------
+
+    with concurrent_app.app_context():
+        test_user = User(
+            username="test_user",
+            email="test_user@example.com",
+            password_hash="test-hash",
+            home_currency="TRY",
+            location="Test",
+        )
+
+        db.session.add(test_user)
+        db.session.commit()
+
+        checking = create_account(
+            user_id=test_user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=test_user.id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("0.00"),
+        )
+
+        # Save plain IDs rather than sharing ORM objects
+        # between different thread Sessions.
+        user_id = test_user.id
+        checking_id = checking.id
+        savings_id = savings.id
+
+        # Ensure account setup is committed before workers run.
+        db.session.commit()
+
+    # --------------------------------------------------
+    # STEP 2: Prepare synchronization and results
+    # --------------------------------------------------
+
+    barrier = Barrier(2)
+
+    # Successful transfers are recorded here.
+    results: dict[str, Decimal] = {}
+
+    # Failed transfers are recorded here.
+    errors: dict[str, Exception] = {}
+
+    # --------------------------------------------------
+    # STEP 3: Define the worker
+    # --------------------------------------------------
+
+    def worker(name: str, amount: Decimal) -> None:
+        try:
+            # Each worker needs its own Flask application context.
+            with concurrent_app.app_context():
+
+                # Wait until both threads are ready.
+                barrier.wait(timeout=5)
+
+                # Attempt the transfer.
+                transfer_money(
+                    user_id=user_id,
+                    from_account_id=checking_id,
+                    to_account_id=savings_id,
+                    amount=amount,
+                )
+
+                # Record success only after transfer_money returns.
+                # This assumes the service commits before returning.
+                results[name] = amount
+
+        except Exception as exc:
+            errors[name] = exc
+
+    # --------------------------------------------------
+    # STEP 4: Create and start both threads
+    # --------------------------------------------------
+
+    thread_a = Thread(
+        target=worker,
+        args=("A", Decimal("2000.00")),
+    )
+
+    thread_b = Thread(
+        target=worker,
+        args=("B", Decimal("4000.00")),
+    )
+
+    thread_a.start()
+    thread_b.start()
+
+    # Wait for both threads to finish.
+    thread_a.join(timeout=10)
+    thread_b.join(timeout=10)
+
+    assert not thread_a.is_alive(), "Thread A did not finish."
+    assert not thread_b.is_alive(), "Thread B did not finish."
+
+    # --------------------------------------------------
+    # STEP 5: Inspect worker outcomes
+    # --------------------------------------------------
+
+    print("\n--- Concurrent Transfer Results ---")
+    print("Successful transfers:", results)
+
+    for name, error in errors.items():
+        print(f"Thread {name} failed: {type(error).__name__}: {error}")
+
+    # Only expected business rejections or SQLite lock errors
+    # are acceptable outcomes for this experiment.
+    for name, error in errors.items():
+        if isinstance(error, ValueError):
+            assert str(error) == "Insufficient funds.", (
+                f"Unexpected business rejection in thread {name}: {error}"
+            )
+
+        elif isinstance(error, OperationalError):
+            # SQLite can report lock contention during
+            # concurrent writes. Keep this visible.
+            assert "locked" in str(error).lower(), (
+                f"Unexpected database error in thread {name}: {error}"
+            )
+
+        else:
+            pytest.fail(
+                f"Unexpected exception in thread {name}: "
+                f"{type(error).__name__}: {error}"
+            )
+
+    # Every worker must have exactly one recorded outcome.
+    assert len(results) + len(errors) == 2
+
+    # Both transfers total 6000 TRY, exceeding the available 5000.
+    assert not ("A" in results and "B" in results), (
+        "Critical failure: Both transfers succeeded!"
+    )
+
+    # --------------------------------------------------
+    # STEP 6: Reload the committed database state
+    # --------------------------------------------------
+
+    with concurrent_app.app_context():
+        db_checking = db.session.get(Account, checking_id)
+        db_savings = db.session.get(Account, savings_id)
+
+        assert db_checking is not None
+        assert db_savings is not None
+
+        # INVARIANT 1: No negative balances.
+        assert db_checking.balance >= Decimal("0.00")
+        assert db_savings.balance >= Decimal("0.00")
+
+        # INVARIANT 2: Money must be conserved.
+        total_balance = db_checking.balance + db_savings.balance
+
+        assert total_balance == Decimal("5000.00"), (
+            f"Money conservation failed: {total_balance}"
+        )
+
+        # INVARIANT 3: Balances match successful transfers.
+        successful_amount = sum(
+            results.values(),
+            Decimal("0.00"),
+        )
+
+        assert db_checking.balance == (
+            Decimal("5000.00") - successful_amount
+        )
+
+        assert db_savings.balance == successful_amount
+
+        # --------------------------------------------------
+        # STEP 7: Verify Transfer history
+        # --------------------------------------------------
+
+        transfers = db.session.scalars(
+            select(Transfer).where(
+                Transfer.user_id == user_id
+            )
+        ).all()
+
+        # INVARIANT 4: Each successful transfer has one record.
+        assert len(transfers) == len(results)
+
+        # INVARIANT 5: Recorded amounts match successful requests.
+        assert sorted(
+            transfer.amount for transfer in transfers
+        ) == sorted(results.values())
+
+        # INVARIANT 6: Every record references the correct accounts.
+        for transfer in transfers:
+            assert transfer.from_account_id == checking_id
+            assert transfer.to_account_id == savings_id
+            assert transfer.currency == "TRY"
+
+        print("\n--- Final Database State ---")
+        print("Checking:", db_checking.balance)
+        print("Savings:", db_savings.balance)
+        print("Transfer records:", len(transfers))
+
+    # --------------------------------------------------
+    # STEP 8: Verify a transfer actually succeeded
+    # --------------------------------------------------
+
+    # We want to demonstrate successful financial processing,
+    # not merely that both requests encountered database errors.
+    assert len(results) == 1, (
+        f"Expected one successful transfer, got {len(results)}. "
+        f"Errors: {errors}"
+    )
+
+
+
+
+
+
+
+
+
+
+
 
 
