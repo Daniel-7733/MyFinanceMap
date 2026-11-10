@@ -617,9 +617,7 @@ def test_concurrent_database_setup(concurrent_app: Flask) -> None:
 
 
 
-def test_concurrent_transfers_cannot_overspend(
-    concurrent_app: Flask,
-) -> None:
+def test_concurrent_transfers_cannot_overspend(concurrent_app: Flask) -> None:
     """
     Test that two concurrent transfers cannot overspend one account.
 
@@ -857,7 +855,37 @@ def test_concurrent_transfers_cannot_overspend(
 
 
 
+def test_concurrency(concurrent_app: Flask,) -> None:
+    with concurrent_app.app_context():
+        user = User(
+            username="user",
+            email="user@example.com",
+            password_hash="test-hash",
+            home_currency="TRY",
+            location="Test",
+        )
 
+        db.session.add(user)
+        db.session.commit()
+
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        user_id = user.id
+        checking_id = checking.id
+
+        # Create two independent sessions.
+        # Load Checking into account_a using session_a.
+        # Load Checking into account_b using session_b.
+
+        # Set account_a.balance to 3000 and commit session_a.
+        # Assert account_b.balance is still 5000.
+        # Refresh account_b using session_b.
+        # Assert account_b.balance is now 3000.
 
 
 
