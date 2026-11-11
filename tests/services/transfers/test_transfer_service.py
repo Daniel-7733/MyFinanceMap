@@ -1,12 +1,14 @@
+import threading
 from decimal import Decimal
 import pytest
-from flask import Flask, session
+from flask import Flask
 from sqlalchemy import select, event
 from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.orm import Session
 from app.models import User, Account, Transfer, Transaction, db
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
-from threading import Thread, Barrier, Event
+from threading import Thread, Barrier
 
 
 
@@ -855,7 +857,7 @@ def test_concurrent_transfers_cannot_overspend(concurrent_app: Flask) -> None:
 
 
 
-def test_concurrency(concurrent_app: Flask,) -> None:
+def test_account_balance_remains_stale_until_refreshed(concurrent_app: Flask) -> None:
     with concurrent_app.app_context():
         user = User(
             username="user",
@@ -875,22 +877,119 @@ def test_concurrency(concurrent_app: Flask,) -> None:
             opening_balance=Decimal("5000.00"),
         )
 
-        user_id = user.id
         checking_id = checking.id
 
         # Create two independent sessions.
-        # Load Checking into account_a using session_a.
-        # Load Checking into account_b using session_b.
+        # Load Checking into account_a using session_a and into account_b using session_b.
+        with Session(db.engine) as session_a, Session(db.engine) as session_b:
+            account_a = session_a.get(Account, checking_id)
+            account_b = session_b.get(Account, checking_id)
 
-        # Set account_a.balance to 3000 and commit session_a.
-        # Assert account_b.balance is still 5000.
-        # Refresh account_b using session_b.
-        # Assert account_b.balance is now 3000.
+            # Set account_a.balance to 3000 and commit session_a.
+            account_a.balance = Decimal("3000.00")
+            session_a.commit()
+
+            # Check B's existing object
+            assert account_b.balance == Decimal("5000.00")
+
+            # Ask B's session to reload its object
+            session_b.refresh(account_b)
+
+            # Check the reloaded object
+            assert account_b.balance == Decimal("3000.00")
 
 
 
+def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask) -> None:
+    with concurrent_app.app_context():
+        user = User(
+            username="user",
+            email="user@example.com",
+            password_hash="test-hash",
+            home_currency="TRY",
+            location="Test",
+        )
 
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
 
+        checking = create_account(
+            user_id=user_id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        savings = create_account(
+            user_id=user_id,
+            account_type="savings",
+            currency="TRY",
+            opening_balance=Decimal("0.00"),
+        )
+
+        checking_id = checking.id
+        savings_id = savings.id
+
+    barrier = Barrier(2)
+
+    balances_read: dict[str, Decimal] = {}
+    results: dict[str, Decimal] = {}
+    errors: list[Exception] = []
+
+    def worker(name: str, amount: Decimal) -> None:
+        try:
+            with concurrent_app.app_context():
+                account = db.session.get(Account, checking_id)
+
+                if account is None:
+                    raise LookupError("Account not found")
+
+                balances_read[name] = account.balance
+
+                # Neither worker proceeds until both have read the balance.
+                barrier.wait(timeout=5)
+
+                transfer_money(
+                    user_id=user_id,
+                    from_account_id=checking_id,
+                    to_account_id=savings_id,
+                    amount=amount,
+                )
+                results[name] = amount
+
+        except Exception as exc:
+            errors.append(exc)
+
+    thread_a = Thread(
+        target=worker,
+        args=("Thread_A", Decimal("2000.00")),
+    )
+    thread_b = Thread(
+        target=worker,
+        args=("Thread_B", Decimal("4000.00")),
+    )
+
+    thread_a.start()
+    thread_b.start()
+
+    thread_a.join(timeout=10)
+    thread_b.join(timeout=10)
+
+    assert not thread_a.is_alive()
+    assert not thread_b.is_alive()
+
+    # Both workers read the original balance before attempting transfers.
+    assert balances_read == {
+        "Thread_A": Decimal("5000.00"),
+        "Thread_B": Decimal("5000.00"),
+    }
+
+    # Exactly one transfer should succeed; we do not choose which one.
+    assert len(results) == 1
+    assert len(errors) == 1
+    assert isinstance(errors[0], ValueError)
+    assert str(errors[0]) == "Insufficient funds."
 
 
 
