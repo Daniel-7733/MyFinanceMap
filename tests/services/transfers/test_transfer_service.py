@@ -991,5 +991,51 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
     assert isinstance(errors[0], ValueError)
     assert str(errors[0]) == "Insufficient funds."
 
+    with concurrent_app.app_context():
+        checking = db.session.get(Account, checking_id)
+        savings = db.session.get(Account, savings_id)
+
+        assert checking is not None
+        assert savings is not None
+
+        successful_amount = sum(results.values(), Decimal("0.00"))
+
+        # check what the database actually saved
+        # |--------------------------------------------------------------|
+        # | Successful transfer | Checking afterward | Savings afterward |
+        # |--------------------------------------------------------------|
+        # | A: 2,000 TRY        | 3,000 TRY          | 2,000 TRY         |
+        # | B: 4,000 TRY        | 1,000 TRY          | 4,000 TRY         |
+        # |--------------------------------------------------------------|
+        assert savings.balance == successful_amount
+        assert checking.balance == Decimal("5000.00") - successful_amount
+
+        # Transfer record
+        # ----------------
+        # The balances may be correct while the record is missing or contains the wrong amount,
+        # so we want to verify that the database saved exactly one record matching the successful transfer.
+
+        # |----------------------------------------------------------------------------------------------|
+        # | Successful transfer | Total rows | from_account_id | to_account_id | currency | amount       |
+        # |----------------------------------------------------------------------------------------------|
+        # | A: 2,000 TRY        | 1          | checking_id     | savings_id    | "TRY"    | 2,000.00 TRY |
+        # | B: 4,000 TRY        | 1          | checking_id     | savings_id    | "TRY"    | 4,000.00 TRY |
+        # |----------------------------------------------------------------------------------------------|
+
+        transfers = db.session.scalars(
+            select(Transfer)
+            .where(Transfer.user_id == user_id)
+        ).all()
+
+        assert len(transfers) == 1
+        assert len(transfers) == len(results)
+
+        # Check that the recorded amount matches the successful transfer.
+        transfer = transfers[0]
+
+        assert transfer.from_account_id == checking_id
+        assert transfer.to_account_id == savings_id
+        assert transfer.currency == "TRY"
+        assert transfer.amount == successful_amount
 
 
