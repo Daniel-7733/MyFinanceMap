@@ -1,4 +1,3 @@
-import threading
 from decimal import Decimal
 import pytest
 from flask import Flask
@@ -8,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models import User, Account, Transfer, Transaction, db
 from app.services.accounts.account_service import create_account
 from app.services.transfers.transfer_service import transfer_money
-from threading import Thread, Barrier
+from threading import Thread, Barrier, local
 
 
 
@@ -933,6 +932,33 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
 
     barrier = Barrier(2)
 
+    # Adding a listener
+    worker_state = local()
+
+    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        # Ignore SQL executed outside our worker threads.
+        if not getattr(worker_state, "is_worker", False):
+            return
+
+        # Only stop at the first UPDATE in each worker (tracked independently per thread).
+        # +------------+------------------------+-------------------+---------------+--------------------------------------+
+        # | Run        | Inside worker_state    | getattr() returns | not getattr() | Enters if block?                     |
+        # +------------+------------------------+-------------------+---------------+--------------------------------------+
+        # | 1st UPDATE | is_worker = True       | False (default)   | True          | Yes (sets debit_seen = True & waits) |
+        # |            | (debit_seen missing)   |                   |               |                                      |
+        # +------------+------------------------+-------------------+---------------+--------------------------------------+
+        # | 2nd UPDATE | is_worker = True       | True (from attr)  | False         | No (skips waiting)                   |
+        # |            | debit_seen = True      |                   |               |                                      |
+        # +------------+------------------------+-------------------+---------------+--------------------------------------+
+
+        if (
+                not getattr(worker_state, "debit_seen", False)
+                and statement.lstrip().upper().startswith("UPDATE")
+        ):
+            worker_state.debit_seen = True
+            barrier.wait(timeout=5)
+
+
     balances_read: dict[str, Decimal] = {}
     results: dict[str, Decimal] = {}
     errors: list[Exception] = []
@@ -949,6 +975,8 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
 
                 # Neither worker proceeds until both have read the balance.
                 barrier.wait(timeout=5)
+                
+                worker_state.is_worker = True
 
                 transfer_money(
                     user_id=user_id,
