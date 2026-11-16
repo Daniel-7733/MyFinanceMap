@@ -901,6 +901,8 @@ def test_account_balance_remains_stale_until_refreshed(concurrent_app: Flask) ->
 
 def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask) -> None:
     with concurrent_app.app_context():
+        engine = db.engine
+
         user = User(
             username="user",
             email="user@example.com",
@@ -934,6 +936,7 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
 
     # Adding a listener
     worker_state = local()
+    workers_at_debit: set[str] = set()
 
     def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         # Ignore SQL executed outside our worker threads.
@@ -956,8 +959,10 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
                 and statement.lstrip().upper().startswith("UPDATE")
         ):
             worker_state.debit_seen = True
+            workers_at_debit.add(worker_state.name)
             barrier.wait(timeout=5)
 
+    event.listen(engine, "before_cursor_execute", before_cursor_execute)
 
     balances_read: dict[str, Decimal] = {}
     results: dict[str, Decimal] = {}
@@ -973,10 +978,8 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
 
                 balances_read[name] = account.balance
 
-                # Neither worker proceeds until both have read the balance.
-                barrier.wait(timeout=5)
-                
                 worker_state.is_worker = True
+                worker_state.name = name
 
                 transfer_money(
                     user_id=user_id,
@@ -998,12 +1001,17 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
         args=("Thread_B", Decimal("4000.00")),
     )
 
-    thread_a.start()
-    thread_b.start()
+    try:
+        thread_a.start()
+        thread_b.start()
 
-    thread_a.join(timeout=10)
-    thread_b.join(timeout=10)
+        thread_a.join(timeout=10)
+        thread_b.join(timeout=10)
 
+    finally:
+        event.remove(engine, "before_cursor_execute", before_cursor_execute)
+
+    assert workers_at_debit == {"Thread_A", "Thread_B"}
     assert not thread_a.is_alive()
     assert not thread_b.is_alive()
 
