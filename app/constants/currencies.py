@@ -4,4 +4,5 @@ CURRENCIES: dict[str, str] = {
     "TRY": "Turkish Lira",
     "CAD": "Canadian Dollar",
     "GBP": "British Pound",
+    "RUB": "Russian Ruble",
 }

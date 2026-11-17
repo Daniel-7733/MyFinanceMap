@@ -1,6 +1,6 @@
 from decimal import Decimal
 import pytest
-from flask import Flask
+from flask import Flask, session
 from sqlalchemy import select, event
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
@@ -1075,3 +1075,25 @@ def test_competing_transfers_after_both_read_same_balance(concurrent_app: Flask)
         assert transfer.amount == successful_amount
 
 
+
+def test_database_rejects_negative_account_balance(app: Flask, user: User) -> None:
+    with app.app_context():
+        checking = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        # TODO: Check if account accept negative amount;
+        #  This goes against the Account rule from database not python rules:
+        #  CheckConstraint( "balance >= 0", name="ck_accounts_balance_nonnegative",),
+        checking.balance = Decimal("-1.00")
+
+        with pytest.raises(IntegrityError, match="ck_accounts_balance_nonnegative"):
+            db.session.flush()
+
+        db.session.rollback()
+        db.session.refresh(checking)
+
+        assert checking.balance == Decimal("5000.00")
