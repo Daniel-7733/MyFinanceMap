@@ -1097,3 +1097,127 @@ def test_database_rejects_negative_account_balance(app: Flask, user: User) -> No
         db.session.refresh(checking)
 
         assert checking.balance == Decimal("5000.00")
+
+
+
+def test_database_rejects_duplicate_account_combination(app: Flask, user: User) -> None:
+    """
+    Same user + checking + TRY
+    Same user + checking + TRY  ← duplicate
+
+    This test should prove that no duplicated account is allow.
+    Also, I directly work with database to prove that.
+    """
+    with app.app_context():
+        original = create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        original_id = original.id
+
+        # TODO: Build a second Account with the same user account type, and currency.
+        #  Add duplicate
+        duplicate = Account(
+            account_type="checking",
+            currency="TRY",
+            balance=Decimal("10.00"),
+            user_id=user.id,
+        )
+        db.session.add(duplicate)
+        # TODO: Expect IntegrityError on flush,
+        #  then roll back.
+        with pytest.raises(IntegrityError) as exe_info:
+            db.session.flush()
+        print(exe_info.value)
+
+        db.session.rollback()
+        db.session.refresh(original)
+
+        # TODO: Reload original_id and check it still exists.TODO: check that the original account still exist
+        saved_account = db.session.get(Account, original_id)
+
+        assert saved_account is not None
+        assert saved_account.balance == Decimal("5000.00")
+
+        # TODO: check the total accounts (checking)
+        accounts = db.session.scalars(
+            select(Account)
+            .where(
+                Account.user_id == user.id,
+                Account.account_type == "checking",
+                Account.currency == "TRY",
+            )
+        ).all()
+
+        assert len(accounts) == 1
+        assert accounts[0].id == original_id
+
+
+
+def test_user_can_have_checking_accounts_in_different_currencies(app: Flask, user: User) -> None:
+    """
+    Same user + checking + TRY
+    Same user + checking + USD  ← different currency
+
+    Verify that a user can create checking accounts in different currencies.
+    """
+    with app.app_context():
+        create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="TRY",
+            opening_balance=Decimal("5000.00"),
+        )
+
+        create_account(
+            user_id=user.id,
+            account_type="checking",
+            currency="USD",
+            opening_balance=Decimal("0.00"),
+        )
+
+        accounts = db.session.scalars(
+            select(Account)
+            .where(
+                Account.user_id == user.id,
+                Account.account_type == "checking",
+            )
+        ).all()
+
+        assert len(accounts) == 2
+
+        result: set[str] = {account.currency for account in accounts}
+        assert result == {"TRY", "USD"}
+
+
+
+def test_database_rejects_invalid_account_type(app: Flask, user: User) -> None:
+    """Rejecting an invalid account type"""
+    with app.app_context():
+        invalid_account = Account(
+            account_type="investment", # Invalid account type (Valid are "checking" and "savings")
+            currency="TRY",
+            balance=Decimal("0.00"),
+            user_id=user.id,
+        )
+
+        db.session.add(invalid_account)
+
+        with pytest.raises(IntegrityError, match="ck_accounts_type"):
+            db.session.flush()
+
+        db.session.rollback()
+
+        accounts = db.session.scalars(
+            select(Account)
+            .where(
+                Account.user_id == user.id,
+            )
+        ).all()
+
+        assert len(accounts) == 0
+
+
