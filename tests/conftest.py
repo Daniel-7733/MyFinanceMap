@@ -31,6 +31,7 @@ Clean everything up
               real Account model
 """
 from pathlib import Path
+from typing import Generator, Any
 
 import pytest
 from flask import Flask
@@ -42,7 +43,7 @@ from dataclasses import replace
 
 
 @pytest.fixture
-def app() -> Flask:
+def app() -> Generator[Flask, Any, None]:
     app = create_app(TestConfig())
 
     with app.app_context():
@@ -55,7 +56,7 @@ def app() -> Flask:
 
 
 @pytest.fixture
-def user(app: Flask) -> User:
+def user(app: Flask) -> Generator[User, Any, None]:
     with app.app_context():
         user = User(
             username="test_user",
@@ -72,7 +73,7 @@ def user(app: Flask) -> User:
 
 
 @pytest.fixture
-def concurrent_app(tmp_path: Path) -> Flask:
+def concurrent_app(tmp_path: Path) -> Generator[Flask, Any, None]:
     database_path = tmp_path / "concurrency.db"
 
     config = replace(

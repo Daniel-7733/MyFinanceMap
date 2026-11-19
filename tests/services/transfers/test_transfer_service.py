@@ -1,7 +1,7 @@
 from decimal import Decimal
 import pytest
 from flask import Flask, session
-from sqlalchemy import select, event
+from sqlalchemy import select, event, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 from app.models import User, Account, Transfer, Transaction, db
@@ -1219,5 +1219,51 @@ def test_database_rejects_invalid_account_type(app: Flask, user: User) -> None:
         ).all()
 
         assert len(accounts) == 0
+
+
+
+def test_check_sqlite_foreign_key_setting(app: Flask) -> None:
+    """
+    Checking SQL foreign key setting.
+        -> 1 means enforcement is enabled on that connection.
+        -> 0 means it is disabled on that connection.
+    """
+    with app.app_context():
+        enabled = db.session.execute(
+            text("PRAGMA foreign_keys")
+        ).scalar_one()
+
+        print(f"Foreign-key enforcement: {enabled}")
+
+
+
+def test_database_rejects_account_with_missing_user(app: Flask) -> None:
+    with app.app_context():
+        missing_user_id = 999999
+        assert db.session.get(User, missing_user_id) is None
+
+        invalid_account = Account(
+            account_type="checking",
+            currency="TRY",
+            balance=Decimal("0.00"),
+            user_id=missing_user_id,
+        )
+
+        db.session.add(invalid_account)
+
+        with pytest.raises(IntegrityError, match="FOREIGN KEY constraint failed"):
+            db.session.flush()
+
+        db.session.rollback()
+
+        accounts = db.session.scalars(
+            select(Account)
+            .where(
+                Account.user_id == missing_user_id
+            )
+        ).all()
+
+        assert len(accounts) == 0
+
 
 

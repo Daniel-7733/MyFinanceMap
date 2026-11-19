@@ -37,6 +37,7 @@ from pathlib import Path
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from sqlalchemy import event
 
 from config import DevConfig, ProdConfig, BaseConfig
 from .models import db, User
@@ -77,9 +78,12 @@ def create_app(config_override: BaseConfig | None = None,) -> Flask:
     def load_user(user_id: str):
         return db.session.get(User, int(user_id))
 
-    # ❗ If you're using migrations, DO NOT keep create_all long-term
-    # with app.app_context():
-    #     db.create_all()
+    # Enable foreign-key enforcement on each new SQLite connection.
+    with app.app_context():
+        engine = db.engine
+        if engine.dialect.name == "sqlite":
+            event.listen(engine, "connect", enable_sqlite_foreign_keys)
+
 
     from .routes import main
     app.register_blueprint(main, url_prefix="/")
@@ -93,3 +97,13 @@ def create_app(config_override: BaseConfig | None = None,) -> Flask:
     # ------ For debug ------ #
 
     return app
+
+
+def enable_sqlite_foreign_keys(dbapi_connection, connection_record) -> None:
+    cursor = dbapi_connection.cursor()
+    try:
+        cursor.execute("PRAGMA foreign_keys=ON")
+    finally:
+        cursor.close()
+
+
