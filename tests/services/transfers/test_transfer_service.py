@@ -1222,7 +1222,7 @@ def test_database_rejects_invalid_account_type(app: Flask, user: User) -> None:
 
 
 
-def test_check_sqlite_foreign_key_setting(app: Flask) -> None:
+def test_sqlite_foreign_keys_are_enabled(app: Flask) -> None:
     """
     Checking SQL foreign key setting.
         -> 1 means enforcement is enabled on that connection.
@@ -1234,6 +1234,43 @@ def test_check_sqlite_foreign_key_setting(app: Flask) -> None:
         ).scalar_one()
 
         print(f"Foreign-key enforcement: {enabled}")
+
+        # PRAGMA foreign_keys returns 1 → test passes
+        # PRAGMA foreign_keys returns 0 → test fails
+        assert enabled == 1
+
+
+
+def test_concurrent_connections_have_foreign_keys_enabled(concurrent_app: Flask,) -> None:
+    with concurrent_app.app_context():
+        with db.engine.connect() as connection_a:
+            with db.engine.connect() as connection_b:
+                enabled_a = connection_a.execute(
+                    text("PRAGMA foreign_keys")
+                ).scalar_one()
+
+                enabled_b = connection_b.execute(
+                    text("PRAGMA foreign_keys")
+                ).scalar_one()
+
+            assert enabled_a == 1
+            assert enabled_b == 1
+
+        violations = db.session.execute(text("PRAGMA foreign_key_check")).all()
+        # Because of concurrent_app make a fresh and new test database, this line of code, unfortunately,
+        # doesn't yet tell us anything about existence database
+        # assert len(violations) == 0
+        assert violations == [], f"Foreign-key violations: {violations}" # This one give clearer failure messages
+
+        # To test on real database, I use this command:
+        # Note: It should be on one line and Each line is connected to the line above it by a "space".
+        # What to expect:
+        # 1. Foreign - key violations: [] means no violations were found among the database’s declared foreign keys.
+        # 2. If rows appear, share the output, and we’ll interpret them before making any changes.
+        # --------------- The Line --------------- #
+        # python -c "import sqlite3; from pathlib import Path; p = Path('instance/myfinancemap.db').resolve();
+        # print('Database:', p); c = sqlite3.connect(p.as_uri() + '?mode=ro', uri=True);
+        # print('Foreign-key violations:', c.execute('PRAGMA foreign_key_check').fetchall()); c.close()"
 
 
 
